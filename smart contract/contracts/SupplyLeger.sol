@@ -31,7 +31,7 @@ contract LocalCollector {
         string quality;
     }
 
-    mapping(uint256 => ItemDetail) public itemDetailFromFarm;
+    mapping(uint256 => ItemDetail) public itemDetailFromLocalCollector;
 
     constructor(string memory _id) {
         id = _id;
@@ -39,8 +39,21 @@ contract LocalCollector {
 }
 
 contract RetailStore {
-    string public name;
     string public id;
+    string public name;
+    string public location;
+
+    struct ItemDetail {
+        uint256 reachedAt;
+        uint256 dispatchedAt;
+        string quality;
+    }
+
+    mapping(uint256 => ItemDetail) public itemDetailFromRetailStore;
+
+    constructor(string memory _id) {
+        id = _id;
+    }
 }
 
 contract SupplyLeger {
