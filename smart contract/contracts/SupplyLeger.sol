@@ -1,24 +1,72 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// Uncomment this line to use console.log
 // import "hardhat/console.sol";
         // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
 
+
+
+contract Farm {
+    string public name;
+    // address
+    string public farmId;
+
+}
+
 contract SupplyLeger {
-    uint public unlockTime;
-    address payable public owner;
+    // event Withdrawal(uint amount, uint when);
 
-    event Withdrawal(uint amount, uint when);
-
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
-
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
+    struct FoodItem {
+        uint256 id;
+        string name;
+        address farm;
+        address localCollector;
+        address retailStore;
+        uint256 purchasedDate;
+        // address factory;
+        // address distributors;
     }
 
+    struct ItemTrackDetail{
+        string checkPoint;
+        uint256 time;
+        // uint256 reachedTime;
+        // uint256 dispachedTime;
+    }
+    uint256 foodItemId;
+    mapping (uint256=>FoodItem) public foodItems;
+    mapping (uint256=>ItemTrackDetail[]) public getAllTracks;
+
+    constructor() {
+
+    }
+
+
+    // food item dispatched from farm to local colloctor
+    function dispachedToLocalColloctor(address _farm, address _localColloctor) public{   
+        foodItems[foodItemId] = FoodItem(
+            foodItemId,
+            "Potato",
+            _farm,
+            _localColloctor,
+            address(0),
+            0
+        );
+
+        getAllTracks[foodItemId].push(ItemTrackDetail("Dispactched From Farm to local store", block.timestamp));
+        foodItemId++;
+    }
+
+
+    // food item dispatched from local Collortor to retail store
+    function dispachedToRetailStore(uint256 _itemId, address _retailStore) public {
+        getAllTracks[_itemId].push(ItemTrackDetail("Dispactched From local store to retail store", block.timestamp));
+        foodItems[_itemId].retailStore = _retailStore;
+    }
+
+    // item purcased
+  function itemPurchased(uint256 _itemId) public {
+        getAllTracks[_itemId].push(ItemTrackDetail("Item sold from Retail store", block.timestamp));
+        foodItems[_itemId].purchasedDate = block.timestamp;
+    }
 }
