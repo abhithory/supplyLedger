@@ -10,6 +10,9 @@ contract Farm {
     string public location;
 
     struct FarmItem {
+        uint256 collectedAt;
+        uint256 dispatchedAt;
+        address dispatchedTo;
         string quality;
     }
 
@@ -28,6 +31,7 @@ contract LocalCollector {
     struct ItemDetail {
         uint256 reachedAt;
         uint256 dispatchedAt;
+        address dispatchedTo;
         string quality;
     }
 
@@ -45,7 +49,7 @@ contract RetailStore {
 
     struct ItemDetail {
         uint256 reachedAt;
-        uint256 dispatchedAt;
+        uint256 soldAt;
         string quality;
     }
 
