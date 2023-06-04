@@ -8,6 +8,7 @@ contract Farm {
     string public id;
     string public name;
     string public location;
+    address public owner;
 
     struct FarmItem {
         uint256 collectedAt;
@@ -18,8 +19,9 @@ contract Farm {
 
     mapping(uint256 => FarmItem) public itemDetailFromFarm;
 
-    constructor(string memory _id) {
+    constructor(string memory _id, address _owner) {
         id = _id;
+        owner = _owner;
     }
 
     function foodItemsCollectedAtFarm(uint256 _id, string memory _qq) public {
@@ -31,6 +33,8 @@ contract LocalCollector {
     string public id;
     string public name;
     string public location;
+    address public owner;
+
 
     struct ItemDetail {
         string quality;
@@ -41,9 +45,11 @@ contract LocalCollector {
 
     mapping(uint256 => ItemDetail) public itemDetailFromLocalCollector;
 
-    constructor(string memory _id) {
+    constructor(string memory _id, address _owner) {
         id = _id;
+        owner = _owner;
     }
+
 
     function foodItemsCollectedAtLC(uint256 _id, string memory _qq) public {
         itemDetailFromLocalCollector[_id] = ItemDetail(_qq, block.timestamp);
@@ -54,6 +60,7 @@ contract RetailStore {
     string public id;
     string public name;
     string public location;
+    address public owner;
 
     struct ItemDetail {
         string quality;
@@ -63,12 +70,13 @@ contract RetailStore {
 
     mapping(uint256 => ItemDetail) public itemDetailFromRetailStore;
 
-    constructor(string memory _id) {
+    constructor(string memory _id, address _owner) {
         id = _id;
+        owner = _owner;
     }
 
     function foodItemsCollectedAtRS(uint256 _id, string memory _qq) public {
-        itemDetailFromRetailStore[_id] = ItemDetail(_qq, block.timestamp,0);
+        itemDetailFromRetailStore[_id] = ItemDetail(_qq, block.timestamp, 0);
     }
 
     function foodItemSold(uint256 _id) public {
@@ -83,7 +91,13 @@ contract RetailStore {
 
 //TODO: quality check at every step
 
-abstract contract SupplyLeger {
+contract SupplyLeger {
+    // -----start => registrar
+    mapping(address => bool) public farmStatus;
+    mapping(address => bool) public LCStatus;
+
+    // -----end => registrar
+
     struct FoodItem {
         uint256 id;
         string name;
@@ -106,6 +120,23 @@ abstract contract SupplyLeger {
     mapping(uint256 => ItemTrackDetail[]) public getAllTracks;
 
     constructor() {}
+
+    // Registring entities
+
+    function registerFarm(string memory _id, address _owner) public {
+        Farm _farm = new Farm(_id, _owner);
+        farmStatus[address(_farm)] = true;
+    }
+
+    function registerLocalCollector(string memory _id, address _owner) public {
+        LocalCollector _lc = new LocalCollector(_id, _owner);
+        LCStatus[address(_lc)] = true;
+    }
+
+    function registerRetailStore(string memory _id, address _owner) public {
+        RetailStore _rs = new RetailStore(_id, _owner);
+        LCStatus[address(_rs)] = true;
+    }
 
     // collect food item data at farm (date, quality etc..) and store in smart contract
     function addFoodItemsAtFarm(address _farmAddr) public {
@@ -146,7 +177,7 @@ abstract contract SupplyLeger {
         LocalCollector _localCollector = LocalCollector(
             foodItems[_itemId].localCollector
         );
-        _localCollector.foodItemsCollectedAtLC(_itemId,"95/100");
+        _localCollector.foodItemsCollectedAtLC(_itemId, "95/100");
         getAllTracks[_itemId].push(
             ItemTrackDetail("Reached at local collector", block.timestamp)
         );
@@ -166,21 +197,15 @@ abstract contract SupplyLeger {
         foodItems[_itemId].retailStore = _retailStore;
     }
 
-
-     // food item reached at retail store
-    function reachedToRetailStore(
-        uint256 _itemId
-    ) public {
+    // food item reached at retail store
+    function reachedToRetailStore(uint256 _itemId) public {
         getAllTracks[_itemId].push(
-            ItemTrackDetail(
-                "Reached At Retail Store",
-                block.timestamp
-            )
+            ItemTrackDetail("Reached At Retail Store", block.timestamp)
         );
 
         RetailStore _retailStore = RetailStore(foodItems[_itemId].retailStore);
 
-        _retailStore.foodItemsCollectedAtRS(_itemId,"92/100");
+        _retailStore.foodItemsCollectedAtRS(_itemId, "92/100");
     }
 
     // item purcased
