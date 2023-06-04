@@ -93,8 +93,13 @@ contract RetailStore {
 
 contract SupplyLeger {
     // -----start => registrar
-    mapping(address => bool) public farmStatus;
-    mapping(address => bool) public LCStatus;
+    struct Entity{
+        address contractAddr;
+        bool status;
+    }
+    mapping(address => Entity) public farmStatus;
+    mapping(address => Entity) public lCStatus;
+    mapping(address => Entity) public rSStatus;
 
     // -----end => registrar
 
@@ -125,17 +130,26 @@ contract SupplyLeger {
 
     function registerFarm(string memory _id, address _owner) public {
         Farm _farm = new Farm(_id, _owner);
-        farmStatus[address(_farm)] = true;
+        farmStatus[_owner] = Entity(
+            address(_farm),
+            true
+        );
     }
 
     function registerLocalCollector(string memory _id, address _owner) public {
         LocalCollector _lc = new LocalCollector(_id, _owner);
-        LCStatus[address(_lc)] = true;
+        lCStatus[_owner] = Entity(
+            address(_lc),
+            true
+        );
     }
 
     function registerRetailStore(string memory _id, address _owner) public {
         RetailStore _rs = new RetailStore(_id, _owner);
-        LCStatus[address(_rs)] = true;
+        rSStatus[_owner] = Entity(
+            address(_rs),
+            true
+        );
     }
 
     // collect food item data at farm (date, quality etc..) and store in smart contract
