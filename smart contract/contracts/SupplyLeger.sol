@@ -11,15 +11,19 @@ contract Farm {
 
     struct FarmItem {
         uint256 collectedAt;
-        uint256 dispatchedAt;
-        address dispatchedTo;
         string quality;
+        // uint256 dispatchedAt;
+        // address dispatchedTo;
     }
 
     mapping(uint256 => FarmItem) public itemDetailFromFarm;
 
     constructor(string memory _id) {
         id = _id;
+    }
+
+    function foodItemsCollectedAtFarm(uint256 _id, string memory _qq) public {
+        itemDetailFromFarm[_id] = FarmItem(block.timestamp, _qq);
     }
 }
 
@@ -29,16 +33,20 @@ contract LocalCollector {
     string public location;
 
     struct ItemDetail {
-        uint256 reachedAt;
-        uint256 dispatchedAt;
-        address dispatchedTo;
         string quality;
+        uint256 reachedAt;
+        // uint256 dispatchedAt;
+        // address dispatchedTo;
     }
 
     mapping(uint256 => ItemDetail) public itemDetailFromLocalCollector;
 
     constructor(string memory _id) {
         id = _id;
+    }
+
+    function foodItemsCollectedAtLC(uint256 _id, string memory _qq) public {
+        itemDetailFromLocalCollector[_id] = ItemDetail(_qq, block.timestamp);
     }
 }
 
@@ -48,9 +56,9 @@ contract RetailStore {
     string public location;
 
     struct ItemDetail {
+        string quality;
         uint256 reachedAt;
         uint256 soldAt;
-        string quality;
     }
 
     mapping(uint256 => ItemDetail) public itemDetailFromRetailStore;
@@ -58,16 +66,31 @@ contract RetailStore {
     constructor(string memory _id) {
         id = _id;
     }
+
+    function foodItemsCollectedAtRS(uint256 _id, string memory _qq) public {
+        itemDetailFromRetailStore[_id] = ItemDetail(_qq, block.timestamp,0);
+    }
+
+    function foodItemSold(uint256 _id) public {
+        itemDetailFromRetailStore[_id].soldAt = 0;
+    }
 }
 
-contract SupplyLeger {
+// TODO: logistic steps add with time
+// contract Logistic{
+
+// }
+
+//TODO: quality check at every step
+
+abstract contract SupplyLeger {
     struct FoodItem {
         uint256 id;
         string name;
         address farm;
         address localCollector;
         address retailStore;
-        uint256 purchasedDate;
+        // uint256 purchasedDate;
         // address factory;
         // address distributors;
     }
@@ -84,27 +107,49 @@ contract SupplyLeger {
 
     constructor() {}
 
-    // food item dispatched from farm to local colloctor
-    function dispachedToLocalColloctor(
-        address _farm,
-        address _localColloctor
-    ) public {
+    // collect food item data at farm (date, quality etc..) and store in smart contract
+    function addFoodItemsAtFarm(address _farmAddr) public {
         foodItems[foodItemId] = FoodItem(
             foodItemId,
             "Potato",
-            _farm,
-            _localColloctor,
+            _farmAddr,
             address(0),
-            0
+            address(0)
         );
 
+        Farm _farm = Farm(_farmAddr);
+        _farm.foodItemsCollectedAtFarm(foodItemId, "99/100");
+
         getAllTracks[foodItemId].push(
+            ItemTrackDetail("Food items collected at farm", block.timestamp)
+        );
+        foodItemId++;
+    }
+
+    // food item dispatched from farm to local colloctor
+    function dispachedToLocalColloctor(
+        uint256 _itemId,
+        address _localColloctor
+    ) public {
+        foodItems[_itemId].localCollector = _localColloctor;
+        getAllTracks[_itemId].push(
             ItemTrackDetail(
                 "Dispactched From Farm to local store",
                 block.timestamp
             )
         );
         foodItemId++;
+    }
+
+    // food item reached at local colloctor
+    function reachedToLocalCollector(uint256 _itemId) public {
+        LocalCollector _localCollector = LocalCollector(
+            foodItems[_itemId].localCollector
+        );
+        _localCollector.foodItemsCollectedAtLC(_itemId,"95/100");
+        getAllTracks[_itemId].push(
+            ItemTrackDetail("Reached at local collector", block.timestamp)
+        );
     }
 
     // food item dispatched from local Collortor to retail store
@@ -121,14 +166,32 @@ contract SupplyLeger {
         foodItems[_itemId].retailStore = _retailStore;
     }
 
+
+     // food item reached at retail store
+    function reachedToRetailStore(
+        uint256 _itemId
+    ) public {
+        getAllTracks[_itemId].push(
+            ItemTrackDetail(
+                "Reached At Retail Store",
+                block.timestamp
+            )
+        );
+
+        RetailStore _retailStore = RetailStore(foodItems[_itemId].retailStore);
+
+        _retailStore.foodItemsCollectedAtRS(_itemId,"92/100");
+    }
+
     // item purcased
     function itemPurchased(uint256 _itemId) public {
+        RetailStore _retailStore = RetailStore(foodItems[_itemId].retailStore);
+        _retailStore.foodItemSold(_itemId);
         getAllTracks[_itemId].push(
             ItemTrackDetail("Item sold from Retail store", block.timestamp)
         );
-        foodItems[_itemId].purchasedDate = block.timestamp;
+        // foodItems[_itemId].purchasedDate = block.timestamp;
     }
 
-    // update
-    // function
+    //
 }
