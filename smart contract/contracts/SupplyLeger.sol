@@ -35,7 +35,6 @@ contract LocalCollector {
     string public location;
     address public owner;
 
-
     struct ItemDetail {
         string quality;
         uint256 reachedAt;
@@ -49,7 +48,6 @@ contract LocalCollector {
         id = _id;
         owner = _owner;
     }
-
 
     function foodItemsCollectedAtLC(uint256 _id, string memory _qq) public {
         itemDetailFromLocalCollector[_id] = ItemDetail(_qq, block.timestamp);
@@ -93,7 +91,13 @@ contract RetailStore {
 
 contract SupplyLeger {
     // -----start => registrar
-    struct Entity{
+
+    // bytes public FarmEntity = abi.encode("FARM");
+    // bytes public LocalCollectorEntity = abi.encode("LOCAL-COLLECTOR");
+    // bytes public RetailStoreEntity = abi.encode("RETAIL-STORE");
+
+    struct Entity {
+        // bytes entityType;
         address contractAddr;
         bool status;
     }
@@ -127,27 +131,23 @@ contract SupplyLeger {
     constructor() {}
 
     // Registring entities
-
     function registerFarm(string memory _id, address _owner) public {
         Farm _farm = new Farm(_id, _owner);
-        farmStatus[_owner] = Entity(
-            address(_farm),
-            true
-        );
+        farmStatus[_owner] = Entity(address(_farm), true);
     }
 
-    function registerLocalCollector(string memory _id, address _owner) public {
-        LocalCollector _lc = new LocalCollector(_id, _owner);
+    function registerLC(string memory _id, address _owner) public {
+        LocalCollector _LocalCollector = new LocalCollector(_id, _owner);
         lCStatus[_owner] = Entity(
-            address(_lc),
+            address(_LocalCollector),
             true
         );
     }
 
-    function registerRetailStore(string memory _id, address _owner) public {
-        RetailStore _rs = new RetailStore(_id, _owner);
+    function registerRS(string memory _id, address _owner) public {
+        RetailStore _RetailStore = new RetailStore(_id, _owner);
         rSStatus[_owner] = Entity(
-            address(_rs),
+            address(_RetailStore),
             true
         );
     }

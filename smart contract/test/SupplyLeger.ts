@@ -33,18 +33,16 @@ describe("SupplyLeger", function () {
         it("Sould registrer right local collector", async function () {
             const { supplyLeger, localCollector } = await loadFixture(supplyLegerFixture);
               expect((await supplyLeger.lCStatus(localCollector.address)).status).to.equal(false);
-              await supplyLeger.registerLocalCollector("Collector001",localCollector.address);
+              await supplyLeger.registerLC("Collector001",localCollector.address);
               expect((await supplyLeger.lCStatus(localCollector.address)).status).to.equal(true);
         });
 
         it("Sould registrer right Retail Store", async function () {
             const { supplyLeger, retailStore } = await loadFixture(supplyLegerFixture);
               expect((await supplyLeger.rSStatus(retailStore.address)).status).to.equal(false);
-              await supplyLeger.registerRetailStore("Retail001",retailStore.address);
+              await supplyLeger.registerRS("Retail001",retailStore.address);
               expect((await supplyLeger.rSStatus(retailStore.address)).status).to.equal(true);
         });
-
-        
     });
 
 });
