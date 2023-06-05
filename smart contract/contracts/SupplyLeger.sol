@@ -124,11 +124,21 @@ contract SupplyLeger {
         // uint256 reachedTime;
         // uint256 dispachedTime;
     }
-    uint256 foodItemId;
+    uint256 public foodItemId;
     mapping(uint256 => FoodItem) public foodItems;
     mapping(uint256 => ItemTrackDetail[]) public getAllTracks;
 
+
+    // Events
+    // event foodItemAdded(address indexed farmAddress,string quality);
+
     constructor() {}
+
+   
+    modifier onlyFarm() {
+        require(farmStatus[msg.sender].status, "Only the registered farm can call");
+        _; // Continue executing the function body
+    }
 
     // Registring entities
     function registerFarm(string memory _id, address _owner) public {
@@ -153,16 +163,16 @@ contract SupplyLeger {
     }
 
     // collect food item data at farm (date, quality etc..) and store in smart contract
-    function addFoodItemsAtFarm(address _farmAddr) public {
+    function addFoodItemsAtFarm() public onlyFarm {
         foodItems[foodItemId] = FoodItem(
             foodItemId,
             "Potato",
-            _farmAddr,
+            farmStatus[msg.sender].contractAddr,
             address(0),
             address(0)
         );
 
-        Farm _farm = Farm(_farmAddr);
+        Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
         _farm.foodItemsCollectedAtFarm(foodItemId, "99/100");
 
         getAllTracks[foodItemId].push(

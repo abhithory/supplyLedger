@@ -23,25 +23,46 @@ describe("SupplyLeger", function () {
             //   expect(await lock.unlockTime()).to.equal(unlockTime);
         });
 
-        it("Sould registrer right farm", async function () {
+        it("Should registrer right farm", async function () {
             const { supplyLeger, farm } = await loadFixture(supplyLegerFixture);
-              expect((await supplyLeger.farmStatus(farm.address)).status).to.equal(false);
-              await supplyLeger.registerFarm("FARM001",farm.address);
-              expect((await supplyLeger.farmStatus(farm.address)).status).to.equal(true);
+            expect((await supplyLeger.farmStatus(farm.address)).status).to.equal(false);
+            await supplyLeger.registerFarm("FARM001", farm.address);
+            expect((await supplyLeger.farmStatus(farm.address)).status).to.equal(true);
         });
 
-        it("Sould registrer right local collector", async function () {
+        it("Should registrer right local collector", async function () {
             const { supplyLeger, localCollector } = await loadFixture(supplyLegerFixture);
-              expect((await supplyLeger.lCStatus(localCollector.address)).status).to.equal(false);
-              await supplyLeger.registerLC("Collector001",localCollector.address);
-              expect((await supplyLeger.lCStatus(localCollector.address)).status).to.equal(true);
+            expect((await supplyLeger.lCStatus(localCollector.address)).status).to.equal(false);
+            await supplyLeger.registerLC("Collector001", localCollector.address);
+            expect((await supplyLeger.lCStatus(localCollector.address)).status).to.equal(true);
         });
 
-        it("Sould registrer right Retail Store", async function () {
+        it("Should registrer right Retail Store", async function () {
             const { supplyLeger, retailStore } = await loadFixture(supplyLegerFixture);
-              expect((await supplyLeger.rSStatus(retailStore.address)).status).to.equal(false);
-              await supplyLeger.registerRS("Retail001",retailStore.address);
-              expect((await supplyLeger.rSStatus(retailStore.address)).status).to.equal(true);
+            expect((await supplyLeger.rSStatus(retailStore.address)).status).to.equal(false);
+            await supplyLeger.registerRS("Retail001", retailStore.address);
+            expect((await supplyLeger.rSStatus(retailStore.address)).status).to.equal(true);
+        });
+    });
+
+    describe("Storing + Retriving Details from Farm Contract", function () {
+
+        it("Should add food item in farm", async function () {
+            const { supplyLeger, farm } = await loadFixture(supplyLegerFixture);
+            await supplyLeger.registerFarm("FARM001", farm.address);
+            const farmEntity = await supplyLeger.farmStatus(farm.address);
+            expect(farmEntity.status).to.equal(true);
+
+            const _id = await supplyLeger.foodItemId();
+            await supplyLeger.connect(farm).addFoodItemsAtFarm();
+
+            const FarmContract = await ethers.getContractFactory("Farm");
+            const farmContract = FarmContract.attach(farmEntity.contractAddr);
+
+            const _farmData = await farmContract.itemDetailFromFarm(_id);
+            // console.log('====================================');
+            // console.log(_farmData);
+            // console.log('====================================');
         });
     });
 
