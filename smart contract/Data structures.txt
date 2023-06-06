@@ -1,0 +1,23 @@
+
+
+===============In farm=============================
+For potatos:--
+
+-Size:Small,Medium,Large
+-Shape:Regular, Irregular
+-Color:Light yellow, Golden,Russet,Red-skinned,White-skinned
+-External Quality:No external defects, Minor external defects (e.g., superficial blemishes), Major external defects (e.g., deep cuts, significant bruising)
+-Internal Quality:No internal defects, Minor internal defects (e.g., slight discoloration), Major internal defects (e.g., rot, sprouting)
+-Weight:Light, Medium, Heavy
+
+BatchQuality detailQuality;
+
+- OverallQualityScore- 0-100
+uint256 collectedAt;
+uint256 overallQualityScoreAtDispatch;
+
+uint256 overallQualityScoreAtPicking;
+uint256 dispatchedAt;
+address dispatchedTo;
+
+============================================

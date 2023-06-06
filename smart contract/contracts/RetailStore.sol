@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 
 contract RetailStore {
@@ -13,9 +13,9 @@ contract RetailStore {
 
 
     struct ItemDetail {
-        string qualityReach;
+        uint256 oqsReach;
         uint256 reachedAt;
-        string qualitySold;
+        uint256 oqsSold;
         uint256 soldAt;
     }
 
@@ -32,12 +32,12 @@ contract RetailStore {
         _;
     }
 
-    function foodItemsCollectedAtRS(uint256 _id, string memory _qq) public onlyRegistrar {
-        itemDetailFromRetailStore[_id] = ItemDetail(_qq, block.timestamp,"",0);
+    function foodItemsCollectedAtRS(uint256 _id, uint256 _oqs) public onlyRegistrar {
+        itemDetailFromRetailStore[_id] = ItemDetail(_oqs, block.timestamp,0,0);
     }
 
-    function foodItemSold(uint256 _id,string memory _qq) public onlyRegistrar {
-        itemDetailFromRetailStore[_id].qualitySold = _qq;
+    function foodItemSold(uint256 _id,uint256 _oqs) public onlyRegistrar {
+        itemDetailFromRetailStore[_id].oqsSold = _oqs;
         itemDetailFromRetailStore[_id].soldAt = block.timestamp;
     }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract LocalCollector {
     string public id;
@@ -12,9 +12,9 @@ contract LocalCollector {
 
 
     struct ItemDetail {
-        string qualityReach;
+        uint256 oqsReach;
         uint256 reachedAt;
-        string qualityDispatch;
+        uint256 oqsDispatch;
         uint256 dispatchedAt;
         address dispatchedTo;
     }
@@ -33,12 +33,12 @@ contract LocalCollector {
         _;
     }
 
-    function foodItemsCollectedAtLC(uint256 _id, string memory _qq) public {
-        itemDetailFromLocalCollector[_id] = ItemDetail(_qq, block.timestamp,"",0,address(0));
+    function foodItemsCollectedAtLC(uint256 _id, uint256 _oqs) public {
+        itemDetailFromLocalCollector[_id] = ItemDetail(_oqs, block.timestamp,0,0,address(0));
     }
 
-    function foodItemsDispachedToRS(uint256 _id, string memory _qq, address _disTo) public {
-        itemDetailFromLocalCollector[_id].qualityDispatch = _qq;
+    function foodItemsDispachedToRS(uint256 _id, uint256 _oqs, address _disTo) public {
+        itemDetailFromLocalCollector[_id].oqsDispatch = _oqs;
         itemDetailFromLocalCollector[_id].dispatchedAt = block.timestamp;
         itemDetailFromLocalCollector[_id].dispatchedTo = _disTo;
     }
