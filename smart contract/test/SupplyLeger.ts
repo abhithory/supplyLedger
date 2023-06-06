@@ -45,8 +45,7 @@ describe("SupplyLeger", function () {
         });
     });
 
-    describe("Storing + Retriving Details from Farm Contract", function () {
-
+    describe("Working with Farm Contract", function () {
         it("Should add food item in farm", async function () {
             const { supplyLeger, farm } = await loadFixture(supplyLegerFixture);
             await supplyLeger.registerFarm("FARM001", farm.address);
@@ -64,6 +63,125 @@ describe("SupplyLeger", function () {
             // console.log(_farmData);
             // console.log('====================================');
         });
+        it("Should dispatch to local collector from farm", async function () {
+            const { supplyLeger, farm, localCollector } = await loadFixture(supplyLegerFixture);
+            await supplyLeger.registerFarm("FARM001", farm.address);
+            const farmEntity = await supplyLeger.farmStatus(farm.address);
+            expect(farmEntity.status).to.equal(true);
+            const _id = await supplyLeger.foodItemId();
+            await supplyLeger.connect(farm).addFoodItemsAtFarm();
+            const FarmContract = await ethers.getContractFactory("Farm");
+            const farmContract = FarmContract.attach(farmEntity.contractAddr);
+            const _farmData = await farmContract.itemDetailFromFarm(_id);
+
+            await supplyLeger.registerLC("LC001",localCollector.address);
+            const lcEntity = await supplyLeger.lCStatus(localCollector.address);
+            expect(lcEntity.status).to.equal(true);
+
+            await supplyLeger.registerLC("LC001",localCollector.address);
+
+            await supplyLeger.connect(farm).dispachedToLocalColloctor(_id,localCollector.address);
+        });
     });
+
+    let _foodId: number;
+    let lcEntity: any;
+
+    async function collectAtLC(supplyLeger:any, farm:any, localCollector:any){
+        await supplyLeger.registerFarm("FARM001", farm.address);
+        const farmEntity = await supplyLeger.farmStatus(farm.address);
+        expect(farmEntity.status).to.equal(true);
+        _foodId = await supplyLeger.foodItemId();
+        await supplyLeger.connect(farm).addFoodItemsAtFarm();
+        const FarmContract = await ethers.getContractFactory("Farm");
+        const farmContract = FarmContract.attach(farmEntity.contractAddr);
+        const _farmData = await farmContract.itemDetailFromFarm(_foodId);
+        // console.log(_farmData);
+        
+        await supplyLeger.registerLC("LC001",localCollector.address);
+        lcEntity = await supplyLeger.lCStatus(localCollector.address);
+        expect(lcEntity.status).to.equal(true);
+        await supplyLeger.connect(farm).dispachedToLocalColloctor(_foodId,localCollector.address);
+        
+        await supplyLeger.connect(localCollector).reachedToLocalCollector(_foodId);
+
+        const LocalCollector = await ethers.getContractFactory("LocalCollector");
+        const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
+        const _lcData = await _localCollector.itemDetailFromLocalCollector(_foodId);
+        // console.log(_lcData);
+    }
+
+    async function dispatchAtLC(supplyLeger:any, farm:any, localCollector:any,retailStore:any){
+        await supplyLeger.connect(localCollector).dispachedToRetailStore(_foodId, retailStore.address);
+        const itemData = await supplyLeger.foodItems(_foodId);
+        expect(itemData.retailStore).to.equal(retailStore.address);
+
+        const LocalCollector = await ethers.getContractFactory("LocalCollector");
+        const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
+        const _lcData = await _localCollector.itemDetailFromLocalCollector(_foodId);
+        expect(_lcData.dispatchedTo).to.equal(retailStore.address);
+    }
+
+    describe("Working with Local Collector", function () {
+        it("Should collect food by local collector", async function () {
+            const { supplyLeger, farm, localCollector } = await loadFixture(supplyLegerFixture);
+            await collectAtLC(supplyLeger, farm, localCollector);
+        });
+        it("Should dispatch to retail store", async function () {
+            const { supplyLeger, farm, localCollector,retailStore } = await loadFixture(supplyLegerFixture);
+            await collectAtLC(supplyLeger, farm, localCollector); 
+            await dispatchAtLC(supplyLeger, farm, localCollector,retailStore);
+        });
+    });
+
+
+    let rSEntity: any;
+
+
+    async function collectAtRS(supplyLeger:any, farm:any, localCollector:any,retailStore:any){
+        await supplyLeger.registerRS("RS001",retailStore.address);
+        rSEntity = await supplyLeger.rSStatus(retailStore.address);
+        await supplyLeger.connect(retailStore).reachedToRetailStore(_foodId);        
+        
+        const RetailStore = await ethers.getContractFactory("RetailStore");
+        const _RetailStore = RetailStore.attach(rSEntity.contractAddr);
+        const _rsData = await _RetailStore.itemDetailFromRetailStore(_foodId);
+        // console.log(_rsData);
+        
+        // expect(_lcData.dispatchedTo).to.equal(retailStore.address);
+    }
+
+    async function soldAtRs(supplyLeger:any, farm:any, localCollector:any,retailStore:any){
+        await supplyLeger.connect(retailStore).itemPurchased(_foodId);        
+        
+        const RetailStore = await ethers.getContractFactory("RetailStore");
+        const _RetailStore = RetailStore.attach(rSEntity.contractAddr);
+        const _rsData = await _RetailStore.itemDetailFromRetailStore(_foodId);
+        // console.log(_rsData);
+        
+        // expect(_lcData.dispatchedTo).to.equal(retailStore.address);
+    }
+
+
+    describe("Working with Retail Store", function () {
+        it("Should collect food at retail store", async function () {
+            const { supplyLeger, farm, localCollector,retailStore } = await loadFixture(supplyLegerFixture);
+            await collectAtLC(supplyLeger, farm, localCollector); 
+            await dispatchAtLC(supplyLeger, farm, localCollector,retailStore);
+
+            await collectAtRS(supplyLeger, farm, localCollector,retailStore)
+        });
+
+        it("Should store detail of sold item", async function () {
+            const { supplyLeger, farm, localCollector,retailStore } = await loadFixture(supplyLegerFixture);
+            await collectAtLC(supplyLeger, farm, localCollector); 
+            await dispatchAtLC(supplyLeger, farm, localCollector,retailStore);
+            await collectAtRS(supplyLeger, farm, localCollector,retailStore)
+
+            await soldAtRs(supplyLeger, farm, localCollector,retailStore);
+        });
+    });
+
+    
 
 });

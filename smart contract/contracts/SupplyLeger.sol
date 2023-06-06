@@ -1,86 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
 
-contract Farm {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
+import "./Farm.sol";
+import "./LocalCollector.sol";
+import "./RetailStore.sol";
 
-    struct FarmItem {
-        uint256 collectedAt;
-        string quality;
-        // uint256 dispatchedAt;
-        // address dispatchedTo;
-    }
-
-    mapping(uint256 => FarmItem) public itemDetailFromFarm;
-
-    constructor(string memory _id, address _owner) {
-        id = _id;
-        owner = _owner;
-    }
-
-    function foodItemsCollectedAtFarm(uint256 _id, string memory _qq) public {
-        itemDetailFromFarm[_id] = FarmItem(block.timestamp, _qq);
-    }
-}
-
-contract LocalCollector {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
-
-    struct ItemDetail {
-        string quality;
-        uint256 reachedAt;
-        // uint256 dispatchedAt;
-        // address dispatchedTo;
-    }
-
-    mapping(uint256 => ItemDetail) public itemDetailFromLocalCollector;
-
-    constructor(string memory _id, address _owner) {
-        id = _id;
-        owner = _owner;
-    }
-
-    function foodItemsCollectedAtLC(uint256 _id, string memory _qq) public {
-        itemDetailFromLocalCollector[_id] = ItemDetail(_qq, block.timestamp);
-    }
-}
-
-contract RetailStore {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
-
-    struct ItemDetail {
-        string quality;
-        uint256 reachedAt;
-        uint256 soldAt;
-    }
-
-    mapping(uint256 => ItemDetail) public itemDetailFromRetailStore;
-
-    constructor(string memory _id, address _owner) {
-        id = _id;
-        owner = _owner;
-    }
-
-    function foodItemsCollectedAtRS(uint256 _id, string memory _qq) public {
-        itemDetailFromRetailStore[_id] = ItemDetail(_qq, block.timestamp, 0);
-    }
-
-    function foodItemSold(uint256 _id) public {
-        itemDetailFromRetailStore[_id].soldAt = 0;
-    }
-}
 
 // TODO: logistic steps add with time
 // contract Logistic{
@@ -124,42 +51,56 @@ contract SupplyLeger {
         // uint256 reachedTime;
         // uint256 dispachedTime;
     }
-    uint256 public foodItemId;
+    uint256 public foodItemId = 1;
     mapping(uint256 => FoodItem) public foodItems;
-    mapping(uint256 => ItemTrackDetail[]) public getAllTracks;
-
+    // mapping(uint256 => ItemTrackDetail[]) public getAllTracks;
 
     // Events
     // event foodItemAdded(address indexed farmAddress,string quality);
 
     constructor() {}
 
-   
     modifier onlyFarm() {
-        require(farmStatus[msg.sender].status, "Only the registered farm can call");
+        require(
+            farmStatus[msg.sender].status,
+            "Only the registered farm can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    modifier onlyLC() {
+        require(
+            lCStatus[msg.sender].status,
+            "Only the registered local collector can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    modifier onlyRS() {
+        require(
+            rSStatus[msg.sender].status,
+            "Only the registered Retail store can call"
+        );
         _; // Continue executing the function body
     }
 
     // Registring entities
     function registerFarm(string memory _id, address _owner) public {
+        require(!farmStatus[msg.sender].status,"Farm already registred");
         Farm _farm = new Farm(_id, _owner);
         farmStatus[_owner] = Entity(address(_farm), true);
     }
 
     function registerLC(string memory _id, address _owner) public {
+        require(!lCStatus[msg.sender].status,"Farm already registred");
         LocalCollector _LocalCollector = new LocalCollector(_id, _owner);
-        lCStatus[_owner] = Entity(
-            address(_LocalCollector),
-            true
-        );
+        lCStatus[_owner] = Entity(address(_LocalCollector), true);
     }
 
     function registerRS(string memory _id, address _owner) public {
+        require(!rSStatus[msg.sender].status,"Farm already registred");
         RetailStore _RetailStore = new RetailStore(_id, _owner);
-        rSStatus[_owner] = Entity(
-            address(_RetailStore),
-            true
-        );
+        rSStatus[_owner] = Entity(address(_RetailStore), true);
     }
 
     // collect food item data at farm (date, quality etc..) and store in smart contract
@@ -175,9 +116,9 @@ contract SupplyLeger {
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
         _farm.foodItemsCollectedAtFarm(foodItemId, "99/100");
 
-        getAllTracks[foodItemId].push(
-            ItemTrackDetail("Food items collected at farm", block.timestamp)
-        );
+        // getAllTracks[foodItemId].push(
+        //     ItemTrackDetail("Food items collected at farm", block.timestamp)
+        // );
         foodItemId++;
     }
 
@@ -185,60 +126,77 @@ contract SupplyLeger {
     function dispachedToLocalColloctor(
         uint256 _itemId,
         address _localColloctor
-    ) public {
+    ) public onlyFarm {
         foodItems[_itemId].localCollector = _localColloctor;
-        getAllTracks[_itemId].push(
-            ItemTrackDetail(
-                "Dispactched From Farm to local store",
-                block.timestamp
-            )
-        );
-        foodItemId++;
+
+        Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
+        _farm.foodItemDispactedFromFarm(_itemId, "98/100", msg.sender);
+        // getAllTracks[_itemId].push(
+        //     ItemTrackDetail(
+        //         "Dispactched From Farm to local store",
+        //         block.timestamp
+        //     )
+        // );
     }
 
     // food item reached at local colloctor
-    function reachedToLocalCollector(uint256 _itemId) public {
+    function reachedToLocalCollector(uint256 _itemId) public onlyLC {
         LocalCollector _localCollector = LocalCollector(
-            foodItems[_itemId].localCollector
+            lCStatus[msg.sender].contractAddr
         );
-        _localCollector.foodItemsCollectedAtLC(_itemId, "95/100");
-        getAllTracks[_itemId].push(
-            ItemTrackDetail("Reached at local collector", block.timestamp)
-        );
+        _localCollector.foodItemsCollectedAtLC(_itemId, "96/100");
+        // getAllTracks[_itemId].push(
+        //     ItemTrackDetail("Reached at local collector", block.timestamp)
+        // );
     }
 
     // food item dispatched from local Collortor to retail store
     function dispachedToRetailStore(
         uint256 _itemId,
         address _retailStore
-    ) public {
-        getAllTracks[_itemId].push(
-            ItemTrackDetail(
-                "Dispactched From local store to retail store",
-                block.timestamp
-            )
-        );
+    ) public onlyLC {
         foodItems[_itemId].retailStore = _retailStore;
+
+        LocalCollector _localCollector = LocalCollector(
+            lCStatus[msg.sender].contractAddr
+        );
+        _localCollector.foodItemsDispachedToRS(_itemId, "93/100", _retailStore);
+
+
+        // getAllTracks[_itemId].push(
+        //     ItemTrackDetail(
+        //         "Dispactched From local store to retail store",
+        //         block.timestamp
+        //     )
+        // );
     }
 
     // food item reached at retail store
-    function reachedToRetailStore(uint256 _itemId) public {
-        getAllTracks[_itemId].push(
-            ItemTrackDetail("Reached At Retail Store", block.timestamp)
+    function reachedToRetailStore(uint256 _itemId) public onlyRS {
+        require(foodItems[_itemId].retailStore == msg.sender, "Retail Store is not correct");
+
+        RetailStore _retailStore = RetailStore(
+            rSStatus[msg.sender].contractAddr
         );
-
-        RetailStore _retailStore = RetailStore(foodItems[_itemId].retailStore);
-
         _retailStore.foodItemsCollectedAtRS(_itemId, "92/100");
+
+        // getAllTracks[_itemId].push(
+        //     ItemTrackDetail("Reached At Retail Store", block.timestamp)
+        // );
     }
 
     // item purcased
-    function itemPurchased(uint256 _itemId) public {
-        RetailStore _retailStore = RetailStore(foodItems[_itemId].retailStore);
-        _retailStore.foodItemSold(_itemId);
-        getAllTracks[_itemId].push(
-            ItemTrackDetail("Item sold from Retail store", block.timestamp)
+    function itemPurchased(uint256 _itemId) public onlyRS {
+        require(foodItems[_itemId].retailStore == msg.sender, "Retail Store is not correct");
+
+        RetailStore _retailStore = RetailStore(
+            rSStatus[msg.sender].contractAddr
         );
+        _retailStore.foodItemSold(_itemId,"90/100");
+
+        // getAllTracks[_itemId].push(
+        //     ItemTrackDetail("Item sold from Retail store", block.timestamp)
+        // );
         // foodItems[_itemId].purchasedDate = block.timestamp;
     }
 
