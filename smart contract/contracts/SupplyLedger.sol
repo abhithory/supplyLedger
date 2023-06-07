@@ -99,7 +99,7 @@ contract SupplyLedger is FarmStructs {
     }
 
     // collect food item data at farm (date, quality etc..) and store in smart contract
-    function addFoodItemsAtFarm(BatchQuality memory _bq, uint256 _oqc) public onlyFarm {
+    function addFoodItemsAtFarm(BatchQuality memory _bq, uint256 _oqc, uint256 _weight) public onlyFarm {
         foodItems[foodItemId] = FoodItem(
             foodItemId,
             "Potato",
@@ -109,7 +109,7 @@ contract SupplyLedger is FarmStructs {
         );
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.foodItemsCollectedAtFarm(foodItemId,_bq, _oqc);
+        _farm.foodItemsCollectedAtFarm(foodItemId,_bq,_weight, _oqc);
 
         // getAllTracks[foodItemId].push(
         //     ItemTrackDetail("Food items collected at farm", block.timestamp)
@@ -121,12 +121,13 @@ contract SupplyLedger is FarmStructs {
     function dispachedToLocalColloctor(
         uint256 _itemId,
         address _localColloctor,
-        uint256 _oqc
+        uint256 _oqc,
+        uint256 _weight
     ) public onlyFarm {
         foodItems[_itemId].localCollector = _localColloctor;
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.foodItemDispactedFromFarm(_itemId, _oqc, msg.sender);
+        _farm.foodItemDispactedFromFarm(_itemId, _oqc, _weight,msg.sender);
         // getAllTracks[_itemId].push(
         //     ItemTrackDetail(
         //         "Dispactched From Farm to local store",
@@ -136,11 +137,11 @@ contract SupplyLedger is FarmStructs {
     }
 
     // food item reached at local colloctor
-    function reachedToLocalCollector(uint256 _itemId,uint256 _oqs) public onlyLC {
+    function reachedToLocalCollector(uint256 _itemId,uint256 _oqs,uint256 _weight) public onlyLC {
         LocalCollector _localCollector = LocalCollector(
             lCStatus[msg.sender].contractAddr
         );
-        _localCollector.foodItemsCollectedAtLC(_itemId, _oqs);
+        _localCollector.foodItemsCollectedAtLC(_itemId,_weight, _oqs);
         // getAllTracks[_itemId].push(
         //     ItemTrackDetail("Reached at local collector", block.timestamp)
         // );
@@ -150,14 +151,15 @@ contract SupplyLedger is FarmStructs {
     function dispachedToRetailStore(
         uint256 _itemId,
         address _retailStore,
-        uint256 _oqs
+        uint256 _oqs,
+        uint256 _weight
     ) public onlyLC {
         foodItems[_itemId].retailStore = _retailStore;
 
         LocalCollector _localCollector = LocalCollector(
             lCStatus[msg.sender].contractAddr
         );
-        _localCollector.foodItemsDispachedToRS(_itemId, _oqs, _retailStore);
+        _localCollector.foodItemsDispachedToRS(_itemId, _oqs,_weight, _retailStore);
 
 
         // getAllTracks[_itemId].push(
@@ -169,13 +171,13 @@ contract SupplyLedger is FarmStructs {
     }
 
     // food item reached at retail store
-    function reachedToRetailStore(uint256 _itemId,uint256 _oqs) public onlyRS {
+    function reachedToRetailStore(uint256 _itemId,uint256 _oqs,uint256 _weight) public onlyRS {
         require(foodItems[_itemId].retailStore == msg.sender, "Retail Store is not correct");
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
-        _retailStore.foodItemsCollectedAtRS(_itemId, _oqs);
+        _retailStore.foodItemsCollectedAtRS(_itemId,_weight, _oqs);
 
         // getAllTracks[_itemId].push(
         //     ItemTrackDetail("Reached At Retail Store", block.timestamp)

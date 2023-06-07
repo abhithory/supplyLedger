@@ -12,8 +12,10 @@ contract LocalCollector {
 
 
     struct ItemDetail {
+        uint256 batchWeight;
         uint256 oqsReach;
         uint256 reachedAt;
+        uint256 weightDispatch;
         uint256 oqsDispatch;
         uint256 dispatchedAt;
         address dispatchedTo;
@@ -33,11 +35,12 @@ contract LocalCollector {
         _;
     }
 
-    function foodItemsCollectedAtLC(uint256 _id, uint256 _oqs) public {
-        itemDetailFromLocalCollector[_id] = ItemDetail(_oqs, block.timestamp,0,0,address(0));
+    function foodItemsCollectedAtLC(uint256 _id, uint256 _oqs,uint256 _ww) public {
+        itemDetailFromLocalCollector[_id] = ItemDetail(_ww,_oqs, block.timestamp,0,0,0,address(0));
     }
 
-    function foodItemsDispachedToRS(uint256 _id, uint256 _oqs, address _disTo) public {
+    function foodItemsDispachedToRS(uint256 _id, uint256 _oqs,uint256 _ww, address _disTo) public {
+        itemDetailFromLocalCollector[_id].weightDispatch = _ww;
         itemDetailFromLocalCollector[_id].oqsDispatch = _oqs;
         itemDetailFromLocalCollector[_id].dispatchedAt = block.timestamp;
         itemDetailFromLocalCollector[_id].dispatchedTo = _disTo;
