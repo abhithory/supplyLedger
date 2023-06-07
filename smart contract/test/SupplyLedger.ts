@@ -258,29 +258,37 @@ describe("SupplyLedger", function () {
             },
             farmPicking: {
                 oqs: 0,
-                time: 0
+                timestamp: "0"
             },
             farmDispatch: {
                 oqs: 0,
-                time: 0
+                timestamp: "0"
             },
             lcPicking: {
                 oqs: 0,
-                time: 0
+                timestamp: "0"
             },
             lsDispatch: {
                 oqs: 0,
-                time: 0
+                timestamp: "0"
             },
             rsPicking: {
                 oqs: 0,
-                time: 0
+                timestamp: "0"
             },
             itemSold: {
                 oqs: 0,
-                time: 0
+                timestamp: "0"
             }
         };
+
+        function formatDate(sec: number): string {
+            return (new Date(Number(sec * 1000))).toLocaleString('en-US', {
+                // dateStyle: 'full',
+                // timeStyle: 'full',
+                hour12: true,
+            })
+        }
 
         const foodItem = await SupplyLedger.foodItems(_foodId);
 
@@ -297,7 +305,7 @@ describe("SupplyLedger", function () {
         const _RetailStore = RetailStore.attach(rsEntity.contractAddr);
         const dataFromRs = await _RetailStore.itemDetailFromRetailStore(_foodId);
 
-        itemDetails.id = foodItem.id;
+        itemDetails.id = Number(foodItem.id);
         itemDetails.name = foodItem.name;
 
         itemDetails.harvestDetails = {
@@ -308,12 +316,12 @@ describe("SupplyLedger", function () {
             internalQuality: harvestDetailsHelp.internalQuality[dataFromFarm.harvestDetails.internalQuality],
             weight: harvestDetailsHelp.weight[dataFromFarm.harvestDetails.weight]
         };
-        itemDetails.farmPicking = { oqs: Number(dataFromFarm.oqsPicking), time: Number(dataFromFarm.collectedAt) };
-        itemDetails.farmDispatch = { oqs: Number(dataFromFarm.oqsPicking), time: Number(dataFromFarm.collectedAt) };
-        itemDetails.lcPicking = { oqs: Number(dataFromLc.oqsReach), time: Number(dataFromLc.reachedAt) };
-        itemDetails.lsDispatch = { oqs: Number(dataFromLc.oqsDispatch), time: Number(dataFromLc.dispatchedAt) };
-        itemDetails.rsPicking = { oqs: Number(dataFromRs.oqsReach), time: Number(dataFromRs.reachedAt) };
-        itemDetails.itemSold = { oqs: Number(dataFromRs.oqsSold), time: Number(dataFromRs.soldAt) };
+        itemDetails.farmPicking = { oqs: Number(dataFromFarm.oqsPicking), timestamp: formatDate(Number(dataFromFarm.collectedAt)) };
+        itemDetails.farmDispatch = { oqs: Number(dataFromFarm.oqsPicking), timestamp: formatDate(Number(dataFromFarm.collectedAt)) };
+        itemDetails.lcPicking = { oqs: Number(dataFromLc.oqsReach), timestamp: formatDate(Number(dataFromLc.reachedAt)) };
+        itemDetails.lsDispatch = { oqs: Number(dataFromLc.oqsDispatch), timestamp: formatDate(Number(dataFromLc.dispatchedAt)) };
+        itemDetails.rsPicking = { oqs: Number(dataFromRs.oqsReach), timestamp: formatDate(Number(dataFromRs.reachedAt)) };
+        itemDetails.itemSold = { oqs: Number(dataFromRs.oqsSold), timestamp: formatDate(Number(dataFromRs.soldAt)) };
 
         console.log(itemDetails);
 
