@@ -19,10 +19,6 @@ import "./RetailStore.sol";
 contract SupplyLedger is FarmStructs {
     // -----start => registrar
 
-    // bytes public FarmEntity = abi.encode("FARM");
-    // bytes public LocalCollectorEntity = abi.encode("LOCAL-COLLECTOR");
-    // bytes public RetailStoreEntity = abi.encode("RETAIL-STORE");
-
     struct Entity {
         // bytes entityType;
         address contractAddr;
