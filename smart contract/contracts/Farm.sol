@@ -55,7 +55,7 @@ contract Farm is FarmStructs {
 
 
     struct FarmItem {
-        BatchQuality harvestQuality;
+        BatchQuality harvestDetails;
         // oqs - overalll quailty score
         uint256 oqsPicking; // 0-100
         uint256 collectedAt;
@@ -82,7 +82,7 @@ contract Farm is FarmStructs {
         BatchQuality memory _qq,
         uint256 _oqs
     ) public onlyRegistrar {
-        itemDetailFromFarm[_id].harvestQuality = _qq;
+        itemDetailFromFarm[_id].harvestDetails = _qq;
         itemDetailFromFarm[_id].oqsPicking = _oqs;
         itemDetailFromFarm[_id].collectedAt = block.timestamp;
     }
