@@ -12,7 +12,7 @@ contract LocalCollector {
 
 
     struct ItemDetail {
-        uint256 batchWeight;
+        uint256 weightReach;
         uint256 oqsReach;
         uint256 reachedAt;
         uint256 weightDispatch;

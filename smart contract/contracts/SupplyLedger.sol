@@ -141,7 +141,7 @@ contract SupplyLedger is FarmStructs {
         LocalCollector _localCollector = LocalCollector(
             lCStatus[msg.sender].contractAddr
         );
-        _localCollector.foodItemsCollectedAtLC(_itemId,_weight, _oqs);
+        _localCollector.foodItemsCollectedAtLC(_itemId, _oqs,_weight);
         // getAllTracks[_itemId].push(
         //     ItemTrackDetail("Reached at local collector", block.timestamp)
         // );
@@ -177,7 +177,7 @@ contract SupplyLedger is FarmStructs {
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
-        _retailStore.foodItemsCollectedAtRS(_itemId,_weight, _oqs);
+        _retailStore.foodItemsCollectedAtRS(_itemId, _oqs,_weight);
 
         // getAllTracks[_itemId].push(
         //     ItemTrackDetail("Reached At Retail Store", block.timestamp)

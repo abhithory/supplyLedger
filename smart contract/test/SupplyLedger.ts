@@ -36,7 +36,7 @@ describe("SupplyLedger", function () {
     }
 
     describe("Deployment + Registrartion", function () {
-        return
+        // return
         it("Should set the right registrar", async function () {
             const { SupplyLedger, registrar } = await loadFixture(SupplyLedgerFixture);
             //   expect(await lock.unlockTime()).to.equal(unlockTime);
@@ -58,7 +58,7 @@ describe("SupplyLedger", function () {
         });
     });
 
-    const potatoHarvestDetails = {
+    const potatobatchQuality = {
         "size": 0,
         "shape": 1,
         "color": 1,
@@ -66,12 +66,21 @@ describe("SupplyLedger", function () {
         "internalQuality": 1,
         "weight": 0,
     }
-    const oqcHarvest = 98;
-    const oqcDispatchLC = 97;
-    let oqsReachingLC = 95;
-    let oqsDispatchLC = 94;
-    let oqsReachingRS = 92;
-    let oqsSold = 90;
+    const oqsFarm = 98;
+    const oqsDispatchFarm = 97;
+    const oqsReachLC = 95;
+    const oqsDispatchLC = 94;
+    const oqsReachRS = 92;
+    const oqsSold = 90;
+
+    const weightFarm = 500;
+    const weightDispatchFarm = 495;
+    const weightReachLC = 480;
+    const weightDispatchLC = 460;
+    const weightReachRS = 445;
+
+
+
 
 
     let farmEntity: any, lcEntity: any, rsEntity: any, _foodId: number;
@@ -81,7 +90,7 @@ describe("SupplyLedger", function () {
         farmEntity = await SupplyLedger.farmStatus(farm.address);
         expect(farmEntity.status).to.equal(true);
         _foodId = await SupplyLedger.foodItemId();
-        await SupplyLedger.connect(farm).addFoodItemsAtFarm(potatoHarvestDetails, oqcHarvest);
+        await SupplyLedger.connect(farm).addFoodItemsAtFarm(potatobatchQuality, oqsFarm, weightFarm);
 
         const FarmContract = await ethers.getContractFactory("Farm");
         const farmContract = FarmContract.attach(farmEntity.contractAddr);
@@ -94,7 +103,7 @@ describe("SupplyLedger", function () {
 
     async function dispactchItemToLC(SupplyLedger: any, farm: any, localCollector: any, retailStore: any) {
         lcEntity = await SupplyLedger.lCStatus(localCollector.address);
-        await SupplyLedger.connect(farm).dispachedToLocalColloctor(_foodId, localCollector.address, oqcDispatchLC);
+        await SupplyLedger.connect(farm).dispachedToLocalColloctor(_foodId, localCollector.address, oqsDispatchFarm, weightDispatchFarm);
 
         const FarmContract = await ethers.getContractFactory("Farm");
         const farmContract = FarmContract.attach(farmEntity.contractAddr);
@@ -106,7 +115,7 @@ describe("SupplyLedger", function () {
     }
 
     describe("Working with Farm Contract", function () {
-        return
+        // return
         it("Should add food item in farm", async function () {
             const { SupplyLedger, farm, localCollector, retailStore } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, retailStore);
@@ -126,7 +135,7 @@ describe("SupplyLedger", function () {
 
 
     async function collectAtLC(SupplyLedger: any, farm: any, localCollector: any) {
-        await SupplyLedger.connect(localCollector).reachedToLocalCollector(_foodId, oqsReachingLC);
+        await SupplyLedger.connect(localCollector).reachedToLocalCollector(_foodId, oqsReachLC, weightReachLC);
 
         const LocalCollector = await ethers.getContractFactory("LocalCollector");
         const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
@@ -138,7 +147,7 @@ describe("SupplyLedger", function () {
     async function dispatchAtLC(SupplyLedger: any, farm: any, localCollector: any, retailStore: any) {
         rsEntity = await SupplyLedger.rSStatus(retailStore.address);
 
-        await SupplyLedger.connect(localCollector).dispachedToRetailStore(_foodId, retailStore.address, oqsDispatchLC);
+        await SupplyLedger.connect(localCollector).dispachedToRetailStore(_foodId, retailStore.address, oqsDispatchLC, weightDispatchLC);
         const itemData = await SupplyLedger.foodItems(_foodId);
         expect(itemData.retailStore).to.equal(retailStore.address);
 
@@ -178,7 +187,7 @@ describe("SupplyLedger", function () {
     async function collectAtRS(SupplyLedger: any, farm: any, localCollector: any, retailStore: any) {
         await SupplyLedger.registerRS("RS001", retailStore.address);
         rsEntity = await SupplyLedger.rSStatus(retailStore.address);
-        await SupplyLedger.connect(retailStore).reachedToRetailStore(_foodId, oqsReachingRS);
+        await SupplyLedger.connect(retailStore).reachedToRetailStore(_foodId, oqsReachRS, weightReachRS);
 
         const RetailStore = await ethers.getContractFactory("RetailStore");
         const _RetailStore = RetailStore.attach(rsEntity.contractAddr);
@@ -237,7 +246,7 @@ describe("SupplyLedger", function () {
 
     async function getDetailsOfProduct(SupplyLedger: any, farm: any, localCollector: any, retailStore: any) {
 
-        const harvestDetailsHelp = {
+        const batchQualityHelp = {
             size: ["Small", "Medium", "Large"],
             shape: ["Regular", "Irregular"],
             color: ["Light yellow", "Golden", "Russet", "Red-skinned", "White-skinned"],
@@ -248,7 +257,7 @@ describe("SupplyLedger", function () {
         const itemDetails = {
             id: 0,
             name: "",
-            harvestDetails: {
+            batchQuality: {
                 size: "0",
                 shape: "0",
                 color: "0",
@@ -258,22 +267,27 @@ describe("SupplyLedger", function () {
             },
             farmPicking: {
                 oqs: 0,
+                weight:0,
                 timestamp: "0"
             },
             farmDispatch: {
                 oqs: 0,
+                weight:0,
                 timestamp: "0"
             },
             lcPicking: {
                 oqs: 0,
+                weight:0,
                 timestamp: "0"
             },
             lsDispatch: {
                 oqs: 0,
+                weight:0,
                 timestamp: "0"
             },
             rsPicking: {
                 oqs: 0,
+                weight:0,
                 timestamp: "0"
             },
             itemSold: {
@@ -308,19 +322,19 @@ describe("SupplyLedger", function () {
         itemDetails.id = Number(foodItem.id);
         itemDetails.name = foodItem.name;
 
-        itemDetails.harvestDetails = {
-            size: harvestDetailsHelp.size[dataFromFarm.harvestDetails.size],
-            shape: harvestDetailsHelp.shape[dataFromFarm.harvestDetails.shape],
-            color: harvestDetailsHelp.color[dataFromFarm.harvestDetails.color],
-            externalQuality: harvestDetailsHelp.externalQuality[dataFromFarm.harvestDetails.externalQuality],
-            internalQuality: harvestDetailsHelp.internalQuality[dataFromFarm.harvestDetails.internalQuality],
-            weight: harvestDetailsHelp.weight[dataFromFarm.harvestDetails.weight]
+        itemDetails.batchQuality = {
+            size: batchQualityHelp.size[dataFromFarm.batchQuality.size],
+            shape: batchQualityHelp.shape[dataFromFarm.batchQuality.shape],
+            color: batchQualityHelp.color[dataFromFarm.batchQuality.color],
+            externalQuality: batchQualityHelp.externalQuality[dataFromFarm.batchQuality.externalQuality],
+            internalQuality: batchQualityHelp.internalQuality[dataFromFarm.batchQuality.internalQuality],
+            weight: batchQualityHelp.weight[dataFromFarm.batchQuality.weight]
         };
-        itemDetails.farmPicking = { oqs: Number(dataFromFarm.oqsPicking), timestamp: formatDate(Number(dataFromFarm.collectedAt)) };
-        itemDetails.farmDispatch = { oqs: Number(dataFromFarm.oqsPicking), timestamp: formatDate(Number(dataFromFarm.collectedAt)) };
-        itemDetails.lcPicking = { oqs: Number(dataFromLc.oqsReach), timestamp: formatDate(Number(dataFromLc.reachedAt)) };
-        itemDetails.lsDispatch = { oqs: Number(dataFromLc.oqsDispatch), timestamp: formatDate(Number(dataFromLc.dispatchedAt)) };
-        itemDetails.rsPicking = { oqs: Number(dataFromRs.oqsReach), timestamp: formatDate(Number(dataFromRs.reachedAt)) };
+        itemDetails.farmPicking = { oqs: Number(dataFromFarm.oqsFarm),weight: Number(dataFromFarm.batchWeight), timestamp: formatDate(Number(dataFromFarm.collectedAt)) };
+        itemDetails.farmDispatch = { oqs: Number(dataFromFarm.oqsFarm),weight: Number(dataFromFarm.weightDispatch), timestamp: formatDate(Number(dataFromFarm.collectedAt)) };
+        itemDetails.lcPicking = { oqs: Number(dataFromLc.oqsReach),weight: Number(dataFromLc.weightReach), timestamp: formatDate(Number(dataFromLc.reachedAt)) };
+        itemDetails.lsDispatch = { oqs: Number(dataFromLc.oqsDispatch),weight: Number(dataFromLc.weightDispatch), timestamp: formatDate(Number(dataFromLc.dispatchedAt)) };
+        itemDetails.rsPicking = { oqs: Number(dataFromRs.oqsReach),weight: Number(dataFromRs.weightReach), timestamp: formatDate(Number(dataFromRs.reachedAt)) };
         itemDetails.itemSold = { oqs: Number(dataFromRs.oqsSold), timestamp: formatDate(Number(dataFromRs.soldAt)) };
 
         console.log(itemDetails);

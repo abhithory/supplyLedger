@@ -11,7 +11,7 @@ contract RetailStore {
     address public registrar;
 
     struct ItemDetail {
-        uint256 batchWeight; // in kg
+        uint256 weightReach; // in kg
         uint256 oqsReach;
         uint256 reachedAt;
         uint256 oqsSold;
