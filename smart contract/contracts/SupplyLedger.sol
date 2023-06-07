@@ -7,7 +7,7 @@ pragma solidity ^0.8.9;
 import "./Farm.sol";
 import "./LocalCollector.sol";
 import "./RetailStore.sol";
-
+import "./Factory.sol";
 
 // TODO: logistic steps add with time
 // contract Logistic{
@@ -16,7 +16,7 @@ import "./RetailStore.sol";
 
 //TODO: quality check at every step
 
-contract SupplyLedger is FarmStructs {
+contract SupplyLedger is FarmStructs, FactoryInterface {
     // -----start => registrar
 
     struct Entity {
@@ -27,28 +27,30 @@ contract SupplyLedger is FarmStructs {
     mapping(address => Entity) public farmStatus;
     mapping(address => Entity) public lCStatus;
     mapping(address => Entity) public rSStatus;
+    mapping(address => Entity) public factoryStatus;
 
     // -----end => registrar
 
-    struct FoodItem {
+    struct PotatoBatchRelation {
         uint256 id;
         string name;
         address farm;
         address localCollector;
-        address retailStore;
-        // address factory;
-        // address distributors;
+        address factory;
     }
+    uint256 public potatoBatchRelationId = 1;
+    mapping(uint256 => PotatoBatchRelation) public potatBatchRelationOf;
+    
 
-    struct ItemTrackDetail {
-        string checkPoint;
-        uint256 time;
-        // uint256 reachedTime;
-        // uint256 dispachedTime;
+    struct ChipsPacketBatchRelations {
+        uint256 id;
+        uint256 potatosRelativeId;
+        address retailStore;
     }
-    uint256 public foodItemId = 1;
-    mapping(uint256 => FoodItem) public foodItems;
-    // mapping(uint256 => ItemTrackDetail[]) public getAllTracks;
+    uint256 public chipsPacketBatchId = 1;
+    mapping(uint256 => ChipsPacketBatchRelations) public chipsPacketBatchRelationsOf;
+
+
 
     // Events
     // event foodItemAdded(address indexed farmAddress,string quality);
@@ -71,6 +73,14 @@ contract SupplyLedger is FarmStructs {
         _; // Continue executing the function body
     }
 
+    modifier onlyFactory() {
+        require(
+            factoryStatus[msg.sender].status,
+            "Only the registered Retail store can call"
+        );
+        _; // Continue executing the function body
+    }
+
     modifier onlyRS() {
         require(
             rSStatus[msg.sender].status,
@@ -81,122 +91,167 @@ contract SupplyLedger is FarmStructs {
 
     // Registring entities
     function registerFarm(string memory _id, address _owner) public {
-        require(!farmStatus[msg.sender].status,"Farm already registred");
+        require(!farmStatus[msg.sender].status, "Farm already registred");
         Farm _farm = new Farm(_id, _owner);
         farmStatus[_owner] = Entity(address(_farm), true);
     }
 
     function registerLC(string memory _id, address _owner) public {
-        require(!lCStatus[msg.sender].status,"Farm already registred");
+        require(!lCStatus[msg.sender].status, "Farm already registred");
         LocalCollector _LocalCollector = new LocalCollector(_id, _owner);
         lCStatus[_owner] = Entity(address(_LocalCollector), true);
     }
 
     function registerRS(string memory _id, address _owner) public {
-        require(!rSStatus[msg.sender].status,"Farm already registred");
+        require(!rSStatus[msg.sender].status, "Farm already registred");
         RetailStore _RetailStore = new RetailStore(_id, _owner);
         rSStatus[_owner] = Entity(address(_RetailStore), true);
     }
 
+    function registerFactory(string memory _id, address _owner) public {
+        require(!factoryStatus[msg.sender].status, "Factory already registred");
+        Factory _Factory = new Factory(_id, _owner);
+        factoryStatus[_owner] = Entity(address(_Factory), true);
+    }
+
     // collect food item data at farm (date, quality etc..) and store in smart contract
-    function addFoodItemsAtFarm(BatchQuality memory _bq, uint256 _oqc, uint256 _weight) public onlyFarm {
-        foodItems[foodItemId] = FoodItem(
-            foodItemId,
-            "Potato",
+    function addPotatoBatchAtFarm(
+        BatchQuality memory _bq,
+        uint256 _oqc,
+        uint256 _weight
+    ) public onlyFarm {
+        potatBatchRelationOf[potatoBatchRelationId] = PotatoBatchRelation(
+            potatoBatchRelationId,
+            "Potato Batch 001",
             farmStatus[msg.sender].contractAddr,
             address(0),
             address(0)
         );
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.foodItemsCollectedAtFarm(foodItemId,_bq,_weight, _oqc);
+        _farm.potatoBatchCollectedAtFarm(potatoBatchRelationId, _bq, _weight, _oqc);
 
-        // getAllTracks[foodItemId].push(
-        //     ItemTrackDetail("Food items collected at farm", block.timestamp)
-        // );
-        foodItemId++;
+        potatoBatchRelationId++;
     }
 
     // food item dispatched from farm to local colloctor
-    function dispachedToLocalColloctor(
+    function dispatchPotatoBatchToLC(
         uint256 _itemId,
         address _localColloctor,
         uint256 _oqc,
         uint256 _weight
     ) public onlyFarm {
-        foodItems[_itemId].localCollector = _localColloctor;
+        potatBatchRelationOf[_itemId].localCollector = _localColloctor;
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.foodItemDispactedFromFarm(_itemId, _oqc, _weight,msg.sender);
-        // getAllTracks[_itemId].push(
-        //     ItemTrackDetail(
-        //         "Dispactched From Farm to local store",
-        //         block.timestamp
-        //     )
-        // );
+        _farm.potatoBatchDispatchedFromFarm(_itemId, _oqc, _weight, msg.sender);
     }
 
     // food item reached at local colloctor
-    function reachedToLocalCollector(uint256 _itemId,uint256 _oqs,uint256 _weight) public onlyLC {
-        LocalCollector _localCollector = LocalCollector(
-            lCStatus[msg.sender].contractAddr
-        );
-        _localCollector.foodItemsCollectedAtLC(_itemId, _oqs,_weight);
-        // getAllTracks[_itemId].push(
-        //     ItemTrackDetail("Reached at local collector", block.timestamp)
-        // );
-    }
-
-    // food item dispatched from local Collortor to retail store
-    function dispachedToRetailStore(
+    function potatoBatchReachedAtLC(
         uint256 _itemId,
-        address _retailStore,
         uint256 _oqs,
         uint256 _weight
     ) public onlyLC {
-        foodItems[_itemId].retailStore = _retailStore;
+        LocalCollector _localCollector = LocalCollector(
+            lCStatus[msg.sender].contractAddr
+        );
+        _localCollector.potatoBatchCollectedAtLC(_itemId, _oqs, _weight);
+    }
+
+    // food item dispatched from local Collortor to factory
+    function potatoBatchDispatchedToFactory(
+        uint256 _itemId,
+        address _factory,
+        uint256 _oqs,
+        uint256 _weight
+    ) public onlyLC {
+        potatBatchRelationOf[_itemId].factory = _factory;
 
         LocalCollector _localCollector = LocalCollector(
             lCStatus[msg.sender].contractAddr
         );
-        _localCollector.foodItemsDispachedToRS(_itemId, _oqs,_weight, _retailStore);
-
-
-        // getAllTracks[_itemId].push(
-        //     ItemTrackDetail(
-        //         "Dispactched From local store to retail store",
-        //         block.timestamp
-        //     )
-        // );
+        _localCollector.potatoBatchDispatchedToFactory(
+            _itemId,
+            _oqs,
+            _weight,
+            _factory
+        );
     }
 
-    // food item reached at retail store
-    function reachedToRetailStore(uint256 _itemId,uint256 _oqs,uint256 _weight) public onlyRS {
-        require(foodItems[_itemId].retailStore == msg.sender, "Retail Store is not correct");
+    function potatoBatchReachedAtFactory(
+        uint256 _itemId,
+        uint256 _oqs,
+        uint256 _weight
+    ) public onlyFactory {
+        require(
+            potatBatchRelationOf[_itemId].factory == msg.sender,
+            "Factory is not correct"
+        );
+
+        Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
+        _Factory.potatoBatchCollectedAtFactory(_itemId, _oqs, _weight);
+    }
+
+    function chipsPreparedAtFactory(
+        uint256 _itemId,
+        ChipsBatch memory _details
+    ) public onlyFactory {
+        require(
+            potatBatchRelationOf[_itemId].factory == msg.sender,
+            "Factory is not correct"
+        );
+
+        Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
+        _Factory.chipsPrepared(chipsPacketBatchId, _details);
+        chipsPacketBatchId++;
+    }
+
+    function chipsPacketBatchDispatchedToRS(
+        uint256 _itemId,
+        address _rs,
+        uint256 _ww
+    ) public onlyFactory {
+        require(
+            potatBatchRelationOf[_itemId].factory == msg.sender,
+            "Factory is not correct"
+        );
+
+        chipsPacketBatchRelationsOf[chipsPacketBatchId].potatosRelativeId = _itemId;
+        chipsPacketBatchRelationsOf[chipsPacketBatchId].retailStore = _rs;
+        Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
+        _Factory.dispactchChipsBatchToRS(chipsPacketBatchId, _rs,_ww);
+
+        chipsPacketBatchId++;
+    }
+
+    // chips batch item reached at retail store
+    function reachedToRetailStore(
+        uint256 _chipsPacketBatchId,
+        uint256 _ww
+    ) public onlyRS {
+        require(
+            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore == msg.sender,
+            "Retail Store is not correct"
+        );
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
-        _retailStore.foodItemsCollectedAtRS(_itemId, _oqs,_weight);
-
-        // getAllTracks[_itemId].push(
-        //     ItemTrackDetail("Reached At Retail Store", block.timestamp)
-        // );
+        _retailStore.chipsBatchCollectedAtRS(_chipsPacketBatchId, _ww);
     }
 
-    // item purcased
-    function itemPurchased(uint256 _itemId,uint256 _oqs) public onlyRS {
-        require(foodItems[_itemId].retailStore == msg.sender, "Retail Store is not correct");
+    function itemPurchased(uint256 _chipsPacketBatchId) public onlyRS {
+        require(
+            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore == msg.sender,
+            "Retail Store is not correct"
+        );
+
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
-        _retailStore.foodItemSold(_itemId,_oqs);
-
-        // getAllTracks[_itemId].push(
-        //     ItemTrackDetail("Item sold from Retail store", block.timestamp)
-        // );
-        // foodItems[_itemId].purchasedDate = block.timestamp;
+        _retailStore.chipsPacketSoldFromBatch(_chipsPacketBatchId);
     }
 
     //

@@ -21,3 +21,55 @@ uint256 dispatchedAt;
 address dispatchedTo;
 
 ============================================
+
+
+
+===============In Factory=============================
+
+Batch Information:
+    - Batch ID: Unique identifier for the batch of chips.
+    - Production Date: The date when the chips were produced in the factory.
+    - Batch Weight: The total weight of the batch of chips.
+    - Shelf Life: The expiration date or shelf life of the chips.
+
+Chips Details:
+
+Flavor: The flavor of the chips, such as barbecue, sour cream and onion, or salted.
+Texture: The texture of the chips, such as crispy or crunchy.
+Special Features: Any unique or special features of the chips, such as being gluten-free or low-fat.
+
+
+Process Details:
+- Cooking Temperature: The temperature at which the chips were cooked.
+- Ingredients: Information about the ingredients used in the chip production process.
+- Moisture Content: The moisture level of the chips after production.
+
+Packaging Details:
+
+- Packaging Material: The type of material used for packaging the chips, such as plastic bags or cardboard boxes.
+- Packaging Methods: Information about the methods used for packaging the chips, such as sealing or vacuum sealing.
+- Package Size: The size or weight of the chip package, such as 100g or 200g.
+
+
+
+=>
+
+Production Detail:--
+- Chips detail:-- [Flavor, Texture, SpecialFeature[]]
+- Process details:-- [cookingTemperature, ingredients[], moistureContent etc..]
+- productionDate
+- expireDate
+- Packing Detail:-- [PackagingMaterial, PackagingMethod, etc...]
+
+
+
+
+
+
+struct PackagingDetails {
+    PackagingMaterial packagingMaterial;
+    PackagingMethod packagingMethod;
+    uint256 packageSize;
+}
+
+======================================================

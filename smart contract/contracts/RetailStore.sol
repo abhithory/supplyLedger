@@ -10,15 +10,15 @@ contract RetailStore {
     address public owner;
     address public registrar;
 
-    struct ItemDetail {
+    struct ChipsBatchShipment {
         uint256 weightReach; // in kg
-        uint256 oqsReach;
+        // uint256 oqsReach;
         uint256 reachedAt;
-        uint256 oqsSold;
+        // uint256 oqsSold;
         uint256 soldAt;
     }
 
-    mapping(uint256 => ItemDetail) public itemDetailFromRetailStore;
+    mapping(uint256 => ChipsBatchShipment) public itemDetailFromRetailStore;
 
     constructor(string memory _id, address _owner) {
         id = _id;
@@ -34,22 +34,19 @@ contract RetailStore {
         _;
     }
 
-    function foodItemsCollectedAtRS(
+    function chipsBatchCollectedAtRS(
         uint256 _id,
-        uint256 _oqs,
+        // uint256 _oqs,
         uint256 _ww
     ) public onlyRegistrar {
-        itemDetailFromRetailStore[_id] = ItemDetail(
+        itemDetailFromRetailStore[_id] = ChipsBatchShipment(
             _ww,
-            _oqs,
             block.timestamp,
-            0,
             0
         );
     }
 
-    function foodItemSold(uint256 _id, uint256 _oqs) public onlyRegistrar {
-        itemDetailFromRetailStore[_id].oqsSold = _oqs;
+    function chipsPacketSoldFromBatch(uint256 _id) public onlyRegistrar {
         itemDetailFromRetailStore[_id].soldAt = block.timestamp;
     }
 }

@@ -35,11 +35,11 @@ contract LocalCollector {
         _;
     }
 
-    function foodItemsCollectedAtLC(uint256 _id, uint256 _oqs,uint256 _ww) public {
+    function potatoBatchCollectedAtLC(uint256 _id, uint256 _oqs,uint256 _ww) public {
         itemDetailFromLocalCollector[_id] = ItemDetail(_ww,_oqs, block.timestamp,0,0,0,address(0));
     }
 
-    function foodItemsDispachedToRS(uint256 _id, uint256 _oqs,uint256 _ww, address _disTo) public {
+    function potatoBatchDispatchedToFactory(uint256 _id, uint256 _oqs,uint256 _ww, address _disTo) public {
         itemDetailFromLocalCollector[_id].weightDispatch = _ww;
         itemDetailFromLocalCollector[_id].oqsDispatch = _oqs;
         itemDetailFromLocalCollector[_id].dispatchedAt = block.timestamp;

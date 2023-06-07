@@ -80,7 +80,7 @@ contract Farm is FarmStructs {
         _;
     }
 
-    function foodItemsCollectedAtFarm(
+    function potatoBatchCollectedAtFarm(
         uint256 _id,
         BatchQuality memory _qq,
         uint256 _ww,
@@ -92,7 +92,7 @@ contract Farm is FarmStructs {
         itemDetailFromFarm[_id].collectedAt = block.timestamp;
     }
 
-    function foodItemDispactedFromFarm(
+    function potatoBatchDispatchedFromFarm(
         uint256 _id,
         uint256 _oqs,
         uint256 _ww,

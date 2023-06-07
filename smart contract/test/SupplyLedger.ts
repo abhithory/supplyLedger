@@ -90,7 +90,7 @@ describe("SupplyLedger", function () {
         farmEntity = await SupplyLedger.farmStatus(farm.address);
         expect(farmEntity.status).to.equal(true);
         _foodId = await SupplyLedger.foodItemId();
-        await SupplyLedger.connect(farm).addFoodItemsAtFarm(potatobatchQuality, oqsFarm, weightFarm);
+        await SupplyLedger.connect(farm).addPotatoBatchAtFarm(potatobatchQuality, oqsFarm, weightFarm);
 
         const FarmContract = await ethers.getContractFactory("Farm");
         const farmContract = FarmContract.attach(farmEntity.contractAddr);
@@ -103,7 +103,7 @@ describe("SupplyLedger", function () {
 
     async function dispactchItemToLC(SupplyLedger: any, farm: any, localCollector: any, retailStore: any) {
         lcEntity = await SupplyLedger.lCStatus(localCollector.address);
-        await SupplyLedger.connect(farm).dispachedToLocalColloctor(_foodId, localCollector.address, oqsDispatchFarm, weightDispatchFarm);
+        await SupplyLedger.connect(farm).dispatchPotatoBatchToLC(_foodId, localCollector.address, oqsDispatchFarm, weightDispatchFarm);
 
         const FarmContract = await ethers.getContractFactory("Farm");
         const farmContract = FarmContract.attach(farmEntity.contractAddr);
@@ -135,7 +135,7 @@ describe("SupplyLedger", function () {
 
 
     async function collectAtLC(SupplyLedger: any, farm: any, localCollector: any) {
-        await SupplyLedger.connect(localCollector).reachedToLocalCollector(_foodId, oqsReachLC, weightReachLC);
+        await SupplyLedger.connect(localCollector).potatoBatchReachedAtLC(_foodId, oqsReachLC, weightReachLC);
 
         const LocalCollector = await ethers.getContractFactory("LocalCollector");
         const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
