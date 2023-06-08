@@ -56,6 +56,7 @@ contract Farm is FarmStructs {
 
     // one batch which containes many potatos
     struct FarmItemBatch {
+        uint256 logisticId;
         BatchQuality batchQuality;
         uint256 batchWeight; // in kg
         // oqs - overalll quailty score => 0-100
@@ -94,10 +95,12 @@ contract Farm is FarmStructs {
 
     function potatoBatchDispatchedFromFarm(
         uint256 _id,
+        uint256 _logisticId,
         uint256 _oqs,
         uint256 _ww,
         address _dispatedTo
     ) public onlyRegistrar {
+        itemDetailFromFarm[_id].logisticId = _logisticId;
         itemDetailFromFarm[_id].weightDispatch = _ww;
         itemDetailFromFarm[_id].oqsDispatch = _oqs;
         itemDetailFromFarm[_id].dispatchedAt = block.timestamp;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
 
 import "./Farm.sol";
@@ -169,12 +169,18 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         uint256 _itemId,
         address _localColloctor,
         uint256 _oqc,
-        uint256 _weight
+        uint256 _weight,
+        address _logisticsAddr
     ) public onlyFarm {
         potatBatchRelationOf[_itemId].localCollector = _localColloctor;
+        
+        Logistics _logi = Logistics(_logisticsAddr);
+        uint256 _shipmentId = _logi.createShipment(msg.sender,_localColloctor);
+
+        console.log("dispatchPotatoBatchToLC", _shipmentId);
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.potatoBatchDispatchedFromFarm(_itemId, _oqc, _weight, msg.sender);
+        _farm.potatoBatchDispatchedFromFarm(_itemId,_shipmentId, _oqc, _weight, msg.sender);
     }
 
     // food item reached at local colloctor

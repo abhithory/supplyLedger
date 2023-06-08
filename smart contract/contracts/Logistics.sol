@@ -54,9 +54,8 @@ contract Logistics {
 
     function createShipment(
         address _origin,
-        // uint256 timeAtStart,
         address _destination
-    ) public onlyRegistrar {
+    ) public onlyRegistrar returns (uint256) {
         shipmentId++;
         shipments[shipmentId] = Shipment(
             shipmentId,
@@ -69,6 +68,7 @@ contract Logistics {
             0,
             0
         );
+        return shipmentId;
     }
 
     function updateShipmentStatus(
