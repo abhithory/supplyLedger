@@ -166,21 +166,21 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
 
     // food item dispatched from farm to local colloctor
     function dispatchPotatoBatchToLC(
-        uint256 _itemId,
+        uint256 _potatoBatchRelationId,
         address _localColloctor,
         uint256 _oqc,
         uint256 _weight,
         address _logisticsAddr
     ) public onlyFarm {
-        potatBatchRelationOf[_itemId].localCollector = _localColloctor;
+        potatBatchRelationOf[_potatoBatchRelationId].localCollector = _localColloctor;
         
         Logistics _logi = Logistics(_logisticsAddr);
-        uint256 _shipmentId = _logi.createShipment(msg.sender,_localColloctor);
+        uint256 _shipmentId = _logi.createShipment(farmStatus[msg.sender].contractAddr,farmStatus[_localColloctor].contractAddr);
 
         console.log("dispatchPotatoBatchToLC", _shipmentId);
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.potatoBatchDispatchedFromFarm(_itemId,_shipmentId, _oqc, _weight, msg.sender);
+        _farm.potatoBatchDispatchedFromFarm(_potatoBatchRelationId,_shipmentId, _oqc, _weight);
     }
 
     // food item reached at local colloctor
@@ -192,7 +192,7 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         LocalCollector _localCollector = LocalCollector(
             lCStatus[msg.sender].contractAddr
         );
-        _localCollector.potatoBatchCollectedAtLC(_itemId, _oqs, _weight);
+        _localCollector.potatoBatchStoredAtLC(_itemId, _oqs, _weight);
     }
 
     // food item dispatched from local Collortor to factory

@@ -54,6 +54,21 @@ contract Farm is FarmStructs {
     address public registrar;
 
 
+    // // one batch which containes many potatos
+    // struct FarmItemBatch {
+    //     uint256 logisticId;
+    //     BatchQuality batchQuality;
+    //     uint256 batchWeight; // in kg
+    //     // oqs - overalll quailty score => 0-100
+    //     uint256 oqsFarm;   // oqs when farmer collect potatos batch from farm 
+    //     uint256 collectedAt;  // time when potatos are collected
+    //     uint256 weightDispatch;  // weight at the time of potatos batch dispatched To Local Collector
+    //     uint256 oqsDispatch;  // oqs at the time of potatos batch dispatched To Local Collector
+    //     uint256 dispatchedAt; //time of potatos batch dispatched To Local Collector
+    //     address dispatchedTo;
+    // }
+
+
     // one batch which containes many potatos
     struct FarmItemBatch {
         uint256 logisticId;
@@ -64,8 +79,8 @@ contract Farm is FarmStructs {
         uint256 collectedAt;  // time when potatos are collected
         uint256 weightDispatch;  // weight at the time of potatos batch dispatched To Local Collector
         uint256 oqsDispatch;  // oqs at the time of potatos batch dispatched To Local Collector
-        uint256 dispatchedAt; //time of potatos batch dispatched To Local Collector
-        address dispatchedTo;
+        // uint256 dispatchedAt; //time of potatos batch dispatched To Local Collector
+        // address dispatchedTo;
     }
 
     mapping(uint256 => FarmItemBatch) public itemDetailFromFarm;
@@ -94,16 +109,15 @@ contract Farm is FarmStructs {
     }
 
     function potatoBatchDispatchedFromFarm(
-        uint256 _id,
+        uint256 _potatoBatchRelationId,
         uint256 _logisticId,
         uint256 _oqs,
-        uint256 _ww,
-        address _dispatedTo
+        uint256 _ww
     ) public onlyRegistrar {
-        itemDetailFromFarm[_id].logisticId = _logisticId;
-        itemDetailFromFarm[_id].weightDispatch = _ww;
-        itemDetailFromFarm[_id].oqsDispatch = _oqs;
-        itemDetailFromFarm[_id].dispatchedAt = block.timestamp;
-        itemDetailFromFarm[_id].dispatchedTo = _dispatedTo;
+        itemDetailFromFarm[_potatoBatchRelationId].logisticId = _logisticId;
+        itemDetailFromFarm[_potatoBatchRelationId].weightDispatch = _ww;
+        itemDetailFromFarm[_potatoBatchRelationId].oqsDispatch = _oqs;
+        // itemDetailFromFarm[_id].dispatchedAt = block.timestamp;
+        // itemDetailFromFarm[_id].dispatchedTo = _dispatedTo;
     }
 }

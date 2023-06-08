@@ -10,39 +10,57 @@ contract LocalCollector {
     address public owner;
     address public registrar;
 
-
-    struct ItemDetail {
-        uint256 weightReach;
-        uint256 oqsReach;
-        uint256 reachedAt;
-        uint256 weightDispatch;
-        uint256 oqsDispatch;
-        uint256 dispatchedAt;
-        address dispatchedTo;
+    struct BatchDetail {
+        uint256 logisticId;
+        uint256 weight;
+        uint256 oqs;
+        uint256 time;
     }
 
-    mapping(uint256 => ItemDetail) public itemDetailFromLocalCollector;
+    mapping(uint256 => BatchDetail) public ArrivedBatchDetails; 
+    mapping(uint256 => BatchDetail) public DispatchedBatchDetails;
 
     constructor(string memory _id, address _owner) {
         id = _id;
         owner = _owner;
         registrar = msg.sender;
-
     }
 
-        modifier onlyRegistrar() {
+    modifier onlyRegistrar() {
         require(msg.sender == registrar, "");
         _;
     }
 
-    function potatoBatchCollectedAtLC(uint256 _id, uint256 _oqs,uint256 _ww) public {
-        itemDetailFromLocalCollector[_id] = ItemDetail(_ww,_oqs, block.timestamp,0,0,0,address(0));
+    function potatoBatchStoredAtLC(
+        uint256 _batchDetailsId,
+        uint256 _logisticId,
+        uint256 _weight,
+        uint256 _oqs
+    ) public {
+        require(ArrivedBatchDetails[_batchDetailsId].logisticId == _logisticId,"logistic id doesnot match");    
+        ArrivedBatchDetails[_batchDetailsId].weight = _weight;
+        ArrivedBatchDetails[_batchDetailsId].oqs = _oqs;
+        ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
-    function potatoBatchDispatchedToFactory(uint256 _id, uint256 _oqs,uint256 _ww, address _disTo) public {
-        itemDetailFromLocalCollector[_id].weightDispatch = _ww;
-        itemDetailFromLocalCollector[_id].oqsDispatch = _oqs;
-        itemDetailFromLocalCollector[_id].dispatchedAt = block.timestamp;
-        itemDetailFromLocalCollector[_id].dispatchedTo = _disTo;
+    function potatoBatchDispatchedToFactory(
+        uint256 _batchDetailsId,
+        uint256 _logisticId,
+        uint256 _weight,
+        uint256 _oqs
+    ) public {
+        DispatchedBatchDetails[_batchDetailsId] = BatchDetail(
+            _logisticId,
+            _weight,
+            _oqs,
+            block.timestamp
+        );
+    }
+
+    function receivedFromLogistic(
+        uint256 _batchId,
+        uint256 _logisticId
+    ) public {
+        ArrivedBatchDetails[_batchId].logisticId = _logisticId;
     }
 }

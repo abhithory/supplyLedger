@@ -2,6 +2,10 @@
 pragma solidity ^0.8.0;
 
 
+contract CommonEntity{
+    function receivedFromLogistic(uint256 _logisticId, uint256 _weight) public{}
+}
+
 // Realtime checking with external apis of status of shipment
 contract Logistics {
     string public id;
@@ -14,6 +18,10 @@ contract Logistics {
         NotLoaded,
         Loaded,
         InTransit,
+        // Dispatched,
+        // Arrived25,
+        // Arrived50,
+        // Arrived75,
         Arrived,
         UnLoaded
     }
@@ -73,7 +81,8 @@ contract Logistics {
 
     function updateShipmentStatus(
         uint256 _shipmentId,
-        ShipmentStatus _status
+        ShipmentStatus _status,
+        uint256 _weight
     ) public onlyRegistrar {
         require(_shipmentId <= shipmentId, "Invalid shipment ID");
         shipments[_shipmentId].status = _status;
@@ -85,7 +94,11 @@ contract Logistics {
         } else if (_status == ShipmentStatus.Arrived) {
             shipments[_shipmentId].timeAtArrived = block.timestamp;
         } else if (_status == ShipmentStatus.UnLoaded) {
+            require(_weight >= 0, "wight of products should be greater than zero");
             shipments[_shipmentId].timeAtUnLoaded = block.timestamp;
+
+            CommonEntity _entity = CommonEntity(shipments[_shipmentId].destination);
+            _entity.receivedFromLogistic(_shipmentId,_weight);
         }
     }
 
