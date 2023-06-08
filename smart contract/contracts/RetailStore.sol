@@ -10,13 +10,20 @@ contract RetailStore {
     address public owner;
     address public registrar;
 
-    struct ChipsBatchShipment {
-        uint256 weightReach; // in kg
-        uint256 reachedAt;
-        uint256 soldAt;
+    struct ChipsBatchDetail {
+        uint256 logisticId;
+        uint256 weight;
+        uint256 time;
     }
 
-    mapping(uint256 => ChipsBatchShipment) public itemDetailFromRetailStore;
+    struct ChipsPacketDetail {
+        uint256 batchId;
+        uint256 weight;
+        uint256 time;
+    }
+
+    mapping(uint256 => ChipsBatchDetail) public ArrivedBatchDetails;
+    mapping(uint256 => ChipsPacketDetail) public soldChipsPacket;
 
     constructor(string memory _id, address _owner) {
         id = _id;
@@ -32,19 +39,26 @@ contract RetailStore {
         _;
     }
 
-    function chipsBatchCollectedAtRS(
-        uint256 _id,
-        // uint256 _oqs,
-        uint256 _ww
-    ) public onlyRegistrar {
-        itemDetailFromRetailStore[_id] = ChipsBatchShipment(
-            _ww,
-            block.timestamp,
-            0
-        );
+    function receivedFromLogistic(
+        uint256 _batchId,
+        uint256 _logisticId
+    ) public {
+        ArrivedBatchDetails[_batchId].logisticId = _logisticId;
     }
 
-    function chipsPacketSoldFromBatch(uint256 _id) public onlyRegistrar {
-        itemDetailFromRetailStore[_id].soldAt = block.timestamp;
+    function chipsBatchStoredAtRS(
+        uint256 _batchDetailsId,
+        uint256 _weight
+    ) public onlyRegistrar {
+        ArrivedBatchDetails[_batchDetailsId].weight = _weight;
+        ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
+    }
+
+    function chipsPacketSold(
+        uint256 _chipsPacketId,
+        uint256 _batchId,
+        uint256 _weight
+    ) public onlyRegistrar {
+        soldChipsPacket[_chipsPacketId] = ChipsPacketDetail(_batchId,_weight,block.timestamp);
     }
 }

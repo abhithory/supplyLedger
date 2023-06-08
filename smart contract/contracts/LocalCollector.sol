@@ -33,17 +33,16 @@ contract LocalCollector {
 
     function potatoBatchStoredAtLC(
         uint256 _batchDetailsId,
-        uint256 _logisticId,
         uint256 _weight,
         uint256 _oqs
     ) public {
-        require(ArrivedBatchDetails[_batchDetailsId].logisticId == _logisticId,"logistic id doesnot match");    
+        // require(ArrivedBatchDetails[_batchDetailsId].logisticId == _logisticId,"logistic id doesnot match");    
         ArrivedBatchDetails[_batchDetailsId].weight = _weight;
         ArrivedBatchDetails[_batchDetailsId].oqs = _oqs;
         ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
-    function potatoBatchDispatchedToFactory(
+    function dispatchPotatoBatchToFactory(
         uint256 _batchDetailsId,
         uint256 _logisticId,
         uint256 _weight,

@@ -135,7 +135,7 @@ describe("SupplyLedger", function () {
 
 
     async function collectAtLC(SupplyLedger: any, farm: any, localCollector: any) {
-        await SupplyLedger.connect(localCollector).potatoBatchReachedAtLC(_foodId, oqsReachLC, weightReachLC);
+        await SupplyLedger.connect(localCollector).potatoBatchStoredAtLC(_foodId, oqsReachLC, weightReachLC);
 
         const LocalCollector = await ethers.getContractFactory("LocalCollector");
         const _localCollector = LocalCollector.attach(lcEntity.contractAddr);

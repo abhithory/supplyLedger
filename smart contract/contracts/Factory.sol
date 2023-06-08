@@ -77,24 +77,23 @@ contract Factory is FactoryInterface {
     address public owner;
     address public registrar;
 
-    struct PotatoBatchShipment {
-        uint256 weightReach;
-        uint256 oqsReach;
-        uint256 reachedAt;
-    }
-
-
-    struct ChipsBatchShipment {
-        uint256 weightDispatch;
-        uint256 dispatchedAt;
-        address dispatchedTo;
-    }
-
-    mapping(uint256 => PotatoBatchShipment) public potatoBatchShipmentFromFactory;
-    mapping(uint256 => ChipsBatchShipment) public chipsShipmentDetails;
-
     mapping(uint256 => ChipsBatch) public chipsBatchOf;
 
+    struct PotatoBatchDetail {
+        uint256 logisticId;
+        uint256 weight;
+        uint256 oqs;
+        uint256 time;
+    }
+
+    struct ChipsBatchDetail {
+        uint256 logisticId;
+        uint256 weight;
+        uint256 time;
+    }
+
+    mapping(uint256 => PotatoBatchDetail) public ArrivedBatchDetails;
+    mapping(uint256 => ChipsBatchDetail) public DispatchedBatchDetails;
 
     constructor(string memory _id, address _owner) {
         id = _id;
@@ -107,24 +106,40 @@ contract Factory is FactoryInterface {
         _;
     }
 
-    function potatoBatchCollectedAtFactory(
-        uint256 _id,
-        uint256 _oqs,
-        uint256 _ww
+    function potatoBatchStoredAtFactory(
+        uint256 _batchDetailsId,
+        uint256 _weight,
+        uint256 _oqs
     ) public onlyRegistrar {
-        potatoBatchShipmentFromFactory[_id] = PotatoBatchShipment(
-            _ww,
-            _oqs,
-            block.timestamp
-        );
+        ArrivedBatchDetails[_batchDetailsId].weight = _weight;
+        ArrivedBatchDetails[_batchDetailsId].oqs = _oqs;
+        ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
-    function chipsPrepared(uint256 chipsBatchId,ChipsBatch memory _details) public onlyRegistrar {
+    function chipsPrepared(
+        uint256 chipsBatchId,
+        ChipsBatch memory _details
+    ) public onlyRegistrar {
         chipsBatchOf[chipsBatchId] = _details;
         chipsBatchOf[chipsBatchId].productionDate = block.timestamp;
     }
 
-    function dispactchChipsBatchToRS(uint256 chipsBatchId, address _rs, uint256 _ww) public onlyRegistrar {
-        chipsShipmentDetails[chipsBatchId] = ChipsBatchShipment(_ww,block.timestamp,_rs);
+    function dispactchChipsBatchToRS(
+        uint256 _chipsPacketBatchId,
+        uint256 _logisticId,
+        uint256 _weight
+    ) public onlyRegistrar {
+        DispatchedBatchDetails[_chipsPacketBatchId] = ChipsBatchDetail(
+            _logisticId,
+            _weight,
+            block.timestamp
+        );
+    }
+
+    function receivedFromLogistic(
+        uint256 _batchId,
+        uint256 _logisticId
+    ) public {
+        ArrivedBatchDetails[_batchId].logisticId = _logisticId;
     }
 }
