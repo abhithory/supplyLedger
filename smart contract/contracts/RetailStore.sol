@@ -12,9 +12,7 @@ contract RetailStore {
 
     struct ChipsBatchShipment {
         uint256 weightReach; // in kg
-        // uint256 oqsReach;
         uint256 reachedAt;
-        // uint256 oqsSold;
         uint256 soldAt;
     }
 

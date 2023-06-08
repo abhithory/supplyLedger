@@ -8,19 +8,10 @@ import "./Farm.sol";
 import "./LocalCollector.sol";
 import "./RetailStore.sol";
 import "./Factory.sol";
+import "./Logistics.sol";
 
-// TODO: logistic steps add with time
-// contract Logistic{
-
-// }
-
-//TODO: quality check at every step
-
-contract SupplyLedger is FarmStructs, FactoryInterface {
-    // -----start => registrar
-
-    struct Entity {
-        // bytes entityType;
+contract RegistrarSupplyLedger{
+      struct Entity {
         address contractAddr;
         bool status;
     }
@@ -28,35 +19,26 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
     mapping(address => Entity) public lCStatus;
     mapping(address => Entity) public rSStatus;
     mapping(address => Entity) public factoryStatus;
+    mapping(address => Entity) public logisticStatus;
 
-    // -----end => registrar
 
-    struct PotatoBatchRelation {
-        uint256 id;
-        string name;
-        address farm;
-        address localCollector;
-        address factory;
+    address public admin;
+
+
+    constructor(address _ad){
+        admin = _ad;
     }
-    uint256 public potatoBatchRelationId = 1;
-    mapping(uint256 => PotatoBatchRelation) public potatBatchRelationOf;
+
+        
+    modifier onlyAdmin() {
+        require(
+            admin == msg.sender,
+            "Only admin can call this function"
+        );
+        _; // Continue executing the function body
+    }
+
     
-
-    struct ChipsPacketBatchRelations {
-        uint256 id;
-        uint256 potatosRelativeId;
-        address retailStore;
-    }
-    uint256 public chipsPacketBatchId = 1;
-    mapping(uint256 => ChipsPacketBatchRelations) public chipsPacketBatchRelationsOf;
-
-
-
-    // Events
-    // event foodItemAdded(address indexed farmAddress,string quality);
-
-    constructor() {}
-
     modifier onlyFarm() {
         require(
             farmStatus[msg.sender].status,
@@ -89,6 +71,15 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
         _; // Continue executing the function body
     }
 
+    modifier onlyLogistic() {
+        require(
+            logisticStatus[msg.sender].status,
+            "Only the registered Retail store can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    
     // Registring entities
     function registerFarm(string memory _id, address _owner) public {
         require(!farmStatus[msg.sender].status, "Farm already registred");
@@ -114,6 +105,40 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
         factoryStatus[_owner] = Entity(address(_Factory), true);
     }
 
+    
+    function registerLogistics(string memory _id, address _owner) public {
+        require(!logisticStatus[msg.sender].status, "Logistics already registred");
+        Logistics _Logistics = new Logistics(_id, _owner);
+        logisticStatus[_owner] = Entity(address(_Logistics), true);
+    }
+}
+
+contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
+
+    struct PotatoBatchRelation {
+        uint256 id;
+        string name;
+        address farm;
+        address localCollector;
+        address factory;
+    }
+    uint256 public potatoBatchRelationId = 1;
+    mapping(uint256 => PotatoBatchRelation) public potatBatchRelationOf;
+
+    struct ChipsPacketBatchRelations {
+        uint256 id;
+        uint256 potatosRelativeId;
+        address retailStore;
+    }
+    uint256 public chipsPacketBatchId = 1;
+    mapping(uint256 => ChipsPacketBatchRelations)
+        public chipsPacketBatchRelationsOf;
+
+    // Events
+    // event foodItemAdded(address indexed farmAddress,string quality);
+
+    constructor(address admin) RegistrarSupplyLedger(admin) {}
+
     // collect food item data at farm (date, quality etc..) and store in smart contract
     function addPotatoBatchAtFarm(
         BatchQuality memory _bq,
@@ -129,7 +154,12 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
         );
 
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
-        _farm.potatoBatchCollectedAtFarm(potatoBatchRelationId, _bq, _weight, _oqc);
+        _farm.potatoBatchCollectedAtFarm(
+            potatoBatchRelationId,
+            _bq,
+            _weight,
+            _oqc
+        );
 
         potatoBatchRelationId++;
     }
@@ -217,10 +247,11 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
             "Factory is not correct"
         );
 
-        chipsPacketBatchRelationsOf[chipsPacketBatchId].potatosRelativeId = _itemId;
+        chipsPacketBatchRelationsOf[chipsPacketBatchId]
+            .potatosRelativeId = _itemId;
         chipsPacketBatchRelationsOf[chipsPacketBatchId].retailStore = _rs;
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
-        _Factory.dispactchChipsBatchToRS(chipsPacketBatchId, _rs,_ww);
+        _Factory.dispactchChipsBatchToRS(chipsPacketBatchId, _rs, _ww);
 
         chipsPacketBatchId++;
     }
@@ -231,7 +262,8 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
         uint256 _ww
     ) public onlyRS {
         require(
-            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore == msg.sender,
+            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore ==
+                msg.sender,
             "Retail Store is not correct"
         );
 
@@ -243,10 +275,10 @@ contract SupplyLedger is FarmStructs, FactoryInterface {
 
     function itemPurchased(uint256 _chipsPacketBatchId) public onlyRS {
         require(
-            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore == msg.sender,
+            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore ==
+                msg.sender,
             "Retail Store is not correct"
         );
-
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
