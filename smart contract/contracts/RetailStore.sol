@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract RetailStore {
     string public id;
@@ -50,6 +50,7 @@ contract RetailStore {
         uint256 _batchDetailsId,
         uint256 _weight
     ) public onlyRegistrar {
+
         ArrivedBatchDetails[_batchDetailsId].weight = _weight;
         ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
     }

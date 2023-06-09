@@ -98,15 +98,40 @@ describe("SupplyLedger", function () {
     const weightDispatchFarm = 495;
     const weightReachLC = 480;
     const weightDispatchLC = 460;
+    const soldPacketWeight = 1;
+
+
+    const weightDispatchFactory = 420;
+
+
     const weightReachRS = 445;
 
 
+    const chipsBatchDetails = {
+        chipsDetail:{
+            flavor:1,
+            texture:0
+        },
+        processDetails:{
+            cookingTemperature:90,
+            ingredients:[0,1,2]
+        },
+        packagingDetails:{
+            packagingMaterial:0,
+            packageSize:1
+        },
+        totalPackets:20,
+        totalWeight:2,
+        productionDate:0,
+        shelfLife:6
+    }
 
 
 
-    let farmEntity: any, lcEntity: any, rsEntity: any, logisticsEntity:any;
-    let _potatoBatchRelationId: number;
-    let _farmToLcLogisticsId: number;
+
+    let farmEntity: any, lcEntity: any, factoryEntity: any, rsEntity: any, logisticsEntity: any;
+    let _potatoBatchRelationId: number, _chipsPacketBatchId:number, _chipsPacketId:number;
+    let _farmToLcLogisticsId: number, _LcToFactoryLogisticsId: number, _factoryToRsLogisticsId: number;
 
 
     async function addPotatoBatchInFarm(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
@@ -134,12 +159,11 @@ describe("SupplyLedger", function () {
         const _farmData = await farmContract.farmPotatoBatchDetailOf(_potatoBatchRelationId);
         _farmToLcLogisticsId = Number(_farmData.logisticId);
         // console.log('====================================');
-        console.log(_farmToLcLogisticsId);
+        // console.log(_farmToLcLogisticsId);
         // console.log('====================================');
     }
 
     describe("Working with Farm Contract", function () {
-
         it("Should add food item in farm", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -159,65 +183,65 @@ describe("SupplyLedger", function () {
 
 
 
-    async function updateLogisticsStates(logisticsId:number,SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+    async function updateLogisticsStates(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {        
         const logisticsContract = await ethers.getContractFactory("Logistics");
         const _logisticsContract = logisticsContract.attach(logisticsEntity.contractAddr);
         let _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        // console.log(_shipment);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId, 1);
         _shipment = await _logisticsContract.shipmentOf(logisticsId);
         // console.log(_shipment);
-        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,1);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId, 2);
         _shipment = await _logisticsContract.shipmentOf(logisticsId);
-        // console.log(_shipment.timeAtLoaded);
-        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,2);
+        // console.log(_shipment);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId, 3);
         _shipment = await _logisticsContract.shipmentOf(logisticsId);
-        // console.log(_shipment.timeAtDispatched);
-        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,3);
-        _shipment = await _logisticsContract.shipmentOf(logisticsId);
-        // console.log(_shipment.timeAtArrived);
+        // console.log(_shipment);
 
-        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,4);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId, 4);
         _shipment = await _logisticsContract.shipmentOf(logisticsId);
-        console.log(_shipment);
+        // console.log(_shipment);
     }
 
-    async function checkArrivedBatchDetailsInLC(logisticsId:number,SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+    async function checkArrivedBatchDetailsInLC(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         const localCollectorContract = await ethers.getContractFactory("LocalCollector");
         const _localCollectorContract = localCollectorContract.attach(lcEntity.contractAddr);
-        let _arrivedBatchDetails = await _localCollectorContract.ArrivedBatchDetails(logisticsId);
-
-        console.log(_arrivedBatchDetails);
-        
-
+        let _arrivedBatchDetails = await _localCollectorContract.ArrivedBatchDetails(_potatoBatchRelationId);
+        // console.log(_arrivedBatchDetails.logisticId);
     }
 
 
     async function storePotatoBatchAtLC(SupplyLedger: any, farm: any, localCollector: any) {
-        await SupplyLedger.connect(localCollector).potatoBatchStoredAtLC(_potatoBatchRelationId, oqsReachLC, weightReachLC);
 
         const LocalCollector = await ethers.getContractFactory("LocalCollector");
         const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
         let _lcData = await _localCollector.ArrivedBatchDetails(_potatoBatchRelationId);
-        console.log(_lcData);
-
+        // console.log(_lcData);
+        await SupplyLedger.connect(localCollector).potatoBatchStoredAtLC(_potatoBatchRelationId, oqsReachLC, weightReachLC);
         _lcData = await _localCollector.ArrivedBatchDetails(_potatoBatchRelationId);
-
+        // console.log(_lcData);
     }
 
 
-    async function dispatchAtLC(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        rsEntity = await SupplyLedger.rSStatus(retailStore.address);
+    async function dispatchPotatoBatchToFactoryFromLC(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        factoryEntity = await SupplyLedger.factoryStatus(factory.address);
 
-        await SupplyLedger.connect(localCollector).dispachedToRetailStore(_potatoBatchRelationId, retailStore.address, oqsDispatchLC, weightDispatchLC);
-        const itemData = await SupplyLedger.foodItems(_potatoBatchRelationId);
-        expect(itemData.retailStore).to.equal(retailStore.address);
+        await SupplyLedger.connect(localCollector).dispatchPotatoBatchToFactory(_potatoBatchRelationId, factory.address, oqsDispatchLC, weightDispatchLC, logistics.address);
+        const itemData = await SupplyLedger.potatBatchRelationOf(_potatoBatchRelationId);
+        expect(itemData.factory).to.equal(factory.address);
 
         const LocalCollector = await ethers.getContractFactory("LocalCollector");
         const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
-        const _lcData = await _localCollector.itemDetailFromLocalCollector(_potatoBatchRelationId);
-        expect(_lcData.dispatchedTo).to.equal(retailStore.address);
+
+        const _lcData = await _localCollector.DispatchedBatchDetails(_potatoBatchRelationId);
+        _LcToFactoryLogisticsId = Number(_lcData.logisticId);
+        // console.log(_LcToFactoryLogisticsId);
+
     }
 
     describe("Working with Local Collector", function () {
+
+        return 
 
         it("Should update Logistics Details in Local collector", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
@@ -227,90 +251,303 @@ describe("SupplyLedger", function () {
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
-            await updateLogisticsStates(_farmToLcLogisticsId,SupplyLedger, farm, localCollector, factory, retailStore, logistics );
-            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId,SupplyLedger, farm, localCollector, factory, retailStore, logistics )
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
         });
-        
-        return 
-        it("Should collect food by local collector", async function () {
+
+        it("Should should store potatoBatch at local collector", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
 
             await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
         });
 
-        it("Should dispatch to retail store", async function () {
+        it("Should dispatch to Factory", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
             await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
 
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+        });
+    });
+
+
+    async function checkArrivedBatchDetailsInFactory(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        const factoryContract = await ethers.getContractFactory("Factory");
+        const _factoryContract = factoryContract.attach(factoryEntity.contractAddr);
+        let _arrivedBatchDetails = await _factoryContract.ArrivedBatchDetails(_potatoBatchRelationId);
+        // console.log(logisticsId);
+        // console.log(_arrivedBatchDetails);
+    }
+
+    async function storePotatoBatchAtFactory(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+
+        const factoryContract = await ethers.getContractFactory("Factory");
+        const _factoryContract = factoryContract.attach(factoryEntity.contractAddr);
+        let _factoryData = await _factoryContract.ArrivedBatchDetails(_potatoBatchRelationId);
+        // console.log(_factoryData);
+        await SupplyLedger.connect(factory).potatoBatchStoredAtFactory(_potatoBatchRelationId, oqsReachLC, weightReachLC);
+        _factoryData = await _factoryContract.ArrivedBatchDetails(_potatoBatchRelationId);
+        // console.log(_factoryData);
+    }
+
+    
+    async function prepareChipsAtFactory(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+
+        _chipsPacketBatchId = await SupplyLedger.chipsPacketBatchId();
+        await SupplyLedger.connect(factory).chipsPreparedAtFactory(_potatoBatchRelationId,chipsBatchDetails);        
+
+        const factoryContract = await ethers.getContractFactory("Factory");
+        const _factoryContract = factoryContract.attach(factoryEntity.contractAddr);
+        let _chipsData = await _factoryContract.chipsBatchOf(_chipsPacketBatchId);
+        // console.log(_chipsData);
+    }
+
+    async function dispatchChipsBatchToRSFromFactory(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        rsEntity = await SupplyLedger.rSStatus(retailStore.address);
+
+        await SupplyLedger.connect(factory).chipsPacketBatchDispatchedToRS(_chipsPacketBatchId, retailStore.address, weightDispatchFactory,logistics.address);
+        const itemData = await SupplyLedger.chipsPacketBatchRelationsOf(_chipsPacketBatchId);
+        expect(itemData.retailStore).to.equal(retailStore.address);
+
+
+        const factoryContract = await ethers.getContractFactory("Factory");
+        const _factoryContract = factoryContract.attach(factoryEntity.contractAddr);
+
+        const _factoryData = await _factoryContract.DispatchedBatchDetails(_chipsPacketBatchId);
+        _factoryToRsLogisticsId =  Number(_factoryData.logisticId);
+
+        // console.log(_factoryToRsLogisticsId);
+        
+    }
+
+
+
+    describe("Working with Factory", function () {
+
+        return
+
+        it("Should update Logistics Details in Factory contarct", async function () {
+            const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
+            await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+
+
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+        });
+
+        
+        it("Should should store potatoBatch at Factory", async function () {
+            const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
+            await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+        
+
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+        });
+
+        it("Should should prepare chips at Factory", async function () {
+            const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
+            await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+
+
+            await prepareChipsAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+        });
+
+        it("Should dispatch to Chips to Retail Store", async function () {
+            const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
+            await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await prepareChipsAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchChipsBatchToRSFromFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
     });
 
 
 
+    
+    async function checkArrivedBatchDetailsInRS(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        const rsContract = await ethers.getContractFactory("RetailStore");
+        const _rsContract = rsContract.attach(rsEntity.contractAddr);
+        let _arrivedBatchDetails = await _rsContract.ArrivedBatchDetails(_chipsPacketBatchId);
+        // console.log(logisticsId);
+        // console.log(_arrivedBatchDetails);
+    }
 
-    async function collectAtRS(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        await SupplyLedger.registerRS("RS001", retailStore.address);
-        rsEntity = await SupplyLedger.rSStatus(retailStore.address);
-        await SupplyLedger.connect(retailStore).reachedToRetailStore(_potatoBatchRelationId, oqsReachRS, weightReachRS);
 
-        const RetailStore = await ethers.getContractFactory("RetailStore");
+    async function chipsPacketStoredAtRs(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        await SupplyLedger.connect(retailStore).chipsPacketStoredAtRs(_chipsPacketBatchId, weightDispatchFactory);
+
+       const RetailStore = await ethers.getContractFactory("RetailStore");
         const _RetailStore = RetailStore.attach(rsEntity.contractAddr);
-        const _rsData = await _RetailStore.itemDetailFromRetailStore(_potatoBatchRelationId);
+        const _rsData = await _RetailStore.ArrivedBatchDetails(_chipsPacketBatchId);
         // console.log(_rsData);
 
         // expect(_lcData.dispatchedTo).to.equal(retailStore.address);
     }
 
-    async function soldAtRs(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        await SupplyLedger.connect(retailStore).itemPurchased(_potatoBatchRelationId, oqsSold);
+    async function chipsPacketSold(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+
+        _chipsPacketId = await SupplyLedger.chipsPacketId();
+        await SupplyLedger.connect(retailStore).chipsPacketSold(_chipsPacketBatchId,soldPacketWeight);
 
         const RetailStore = await ethers.getContractFactory("RetailStore");
         const _RetailStore = RetailStore.attach(rsEntity.contractAddr);
-        const _rsData = await _RetailStore.itemDetailFromRetailStore(_potatoBatchRelationId);
-        // console.log(_rsData);
-
-        // expect(_lcData.dispatchedTo).to.equal(retailStore.address);
+        const _rsData = await _RetailStore.soldChipsPacket(_chipsPacketId);
+        console.log(_rsData);
     }
 
 
     describe("Working with Retail Store", function () {
-        return
-        it("Should collect food at retail store", async function () {
+
+        it("Should update Logistics Details in Retail Store contarct", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
             await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await prepareChipsAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchChipsBatchToRSFromFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
-            await collectAtRS(SupplyLedger, farm, localCollector, retailStore)
+
+            await checkArrivedBatchDetailsInRS(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInRS(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
 
+        
+        it("Should store chips packet batch at retail store", async function () {
+            const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
+            await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await prepareChipsAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchChipsBatchToRSFromFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInRS(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+
+            await chipsPacketStoredAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+        });
+        
         it("Should store detail of sold item", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
             await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await prepareChipsAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await collectAtRS(SupplyLedger, farm, localCollector, retailStore)
+            await dispatchChipsBatchToRSFromFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInRS(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await chipsPacketStoredAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
-            await soldAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+
+            await chipsPacketSold(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
     });
 
@@ -425,7 +662,7 @@ describe("SupplyLedger", function () {
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await collectAtRS(SupplyLedger, farm, localCollector, retailStore)
             await soldAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 

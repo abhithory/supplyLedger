@@ -51,7 +51,7 @@ contract RegistrarSupplyLedger is LogisticsInterface {
     modifier onlyFactory() {
         require(
             factoryStatus[msg.sender].status,
-            "Only the registered Retail store can call"
+            "Only the registered Factory can call"
         );
         _; // Continue executing the function body
     }
@@ -127,7 +127,7 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
     mapping(uint256 => ChipsPacketBatchRelations)
         public chipsPacketBatchRelationsOf;
 
-    uint256 chipsPacketId;
+    uint256 public chipsPacketId;
     mapping(uint256 => uint256) public chipsPacketBatchOf;
 
     // Events
@@ -237,12 +237,9 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             lCStatus[msg.sender].contractAddr,
             factoryStatus[_factory].contractAddr
         );
-
-        console.log("dispatchPotatoBatchToLC", _shipmentId);
-
         _localCollector.dispatchPotatoBatchToFactory(
             _potatoBatchRelationId,
-            _potatoBatchRelationId,
+            _shipmentId,
             _oqs,
             _weight
         );
@@ -304,7 +301,6 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             factoryStatus[msg.sender].contractAddr,
             rSStatus[_rs].contractAddr
         );
-        console.log("dispatchPotatoBatchToLC", _shipmentId);
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
         _Factory.dispactchChipsBatchToRS(_chipsPacketBatchId, _shipmentId, _ww);
@@ -324,10 +320,12 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
+
+
         _retailStore.chipsBatchStoredAtRS(_batchDetailsId, _weight);
     }
 
-    function itemPurchased(
+    function chipsPacketSold(
         uint256 _chipsPacketBatchId,
         uint256 _packetWeight
     ) public onlyRS {
@@ -342,10 +340,11 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         );
         chipsPacketBatchOf[chipsPacketId] = _chipsPacketBatchId;
         _retailStore.chipsPacketSold(
-            _chipsPacketBatchId,
             chipsPacketId,
+            _chipsPacketBatchId,
             _packetWeight
         );
+        chipsPacketId++;
     }
 
     //

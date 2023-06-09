@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface FactoryInterface {
     enum Flavor {
@@ -42,21 +42,27 @@ interface FactoryInterface {
         CardboardBoxes
     }
 
+    enum PackagingSize {
+        Garm100,
+        Gram200,
+        Gram500
+    }
+
     struct ChipsDetail {
         Flavor flavor;
         Texture texture;
-        SpecialFeature[] specialFeatures;
+        // SpecialFeature[] specialFeatures;
     }
 
     struct ProcessDetails {
-        uint256 cookingTemperature;
-        string[] ingredients;
-        uint256 moistureContent;
+        uint256 cookingTemperature; // *C
+        Ingredient[] ingredients;
+        // uint256 moistureContent;
     }
 
     struct PackagingDetails {
         PackagingMaterial packagingMaterial;
-        uint256 packageSize;
+        PackagingSize packageSize;
     }
 
     struct ChipsBatch {
@@ -64,9 +70,9 @@ interface FactoryInterface {
         ProcessDetails processDetails;
         PackagingDetails packagingDetails;
         uint256 totalPackets;
-        uint256 totalWeight;
+        uint256 totalWeight; // kg
         uint256 productionDate;
-        uint256 expireDate;
+        uint256 shelfLife; // mounths
     }
 }
 
