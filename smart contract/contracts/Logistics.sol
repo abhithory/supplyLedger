@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
+import "./BaseEntityContract.sol";
 
 
 contract CommonEntity{
     function receivedFromLogistic(uint256 _logisticId, uint256 _weight) public{}
 }
 
-interface LogisticsInterface{
+interface BaseLogisticsInterface{
     
     enum ShipmentStatus {
         NotLoaded,
@@ -19,24 +20,8 @@ interface LogisticsInterface{
         Arrived,
         UnLoaded
     }
-}
 
-// Realtime checking with external apis of status of shipment
-contract Logistics is LogisticsInterface {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
-    address public registrar;
-
-    // struct Document {
-    //     uint256 documentId;
-    //     string documentType;
-    //     string documentName;
-    //     string documentHash;
-    // }
-    struct Shipment {
-        // uint256 shipmentId;
+        struct Shipment {
         uint256 batchId;
         ShipmentStatus status;
         address origin;
@@ -46,24 +31,26 @@ contract Logistics is LogisticsInterface {
         uint256 timeAtDispatched;
         uint256 timeAtArrived;
         uint256 timeAtUnLoaded;
-        //  Document[] docs;
     }
-    mapping(uint256 => Shipment) public shipmentOf;
+
+        // struct Document {
+    //     uint256 documentId;
+    //     string documentType;
+    //     string documentName;
+    //     string documentHash;
+    // }
+
+}
+
+// Realtime checking with external apis of status of shipment
+contract Logistics is BaseLogisticsInterface, BaseEntityContract {
+
+
     uint256 public shipmentId;
+    mapping(uint256 => Shipment) public shipmentOf;
 
-    constructor(string memory _id, address _owner) {
-        id = _id;
-        owner = _owner;
-        registrar = msg.sender;
-    }
+    constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender) {}
 
-    modifier onlyRegistrar() {
-        require(
-            msg.sender == registrar,
-            "only registrar can call this function"
-        );
-        _;
-    }
 
     function createShipment(
         uint256 _batchId,

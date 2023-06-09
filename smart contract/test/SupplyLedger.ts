@@ -555,8 +555,12 @@ describe("SupplyLedger", function () {
 
 
 
+    async function getDetailsOfProduct(chipsPacketId:number ,SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        // const 
 
-    async function getDetailsOfProduct(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+    }
+
+    async function getDetailsOfProduct2(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
 
         const batchQualityHelp = {
             size: ["Small", "Medium", "Large"],
@@ -655,20 +659,32 @@ describe("SupplyLedger", function () {
 
     
     describe("Customer getting details", function () {
-        return
         it("Should get all details of product", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
+            await updateLogisticsStates(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics)
             await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
-            await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispatchPotatoBatchToFactoryFromLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await collectAtRS(SupplyLedger, farm, localCollector, retailStore)
-            await soldAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await prepareChipsAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispatchChipsBatchToRSFromFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await updateLogisticsStates(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await checkArrivedBatchDetailsInRS(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await chipsPacketStoredAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await chipsPacketSold(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
-            await getDetailsOfProduct(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await getDetailsOfProduct(_chipsPacketId,SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
     });
 

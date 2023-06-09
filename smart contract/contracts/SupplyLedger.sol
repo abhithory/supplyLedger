@@ -10,7 +10,7 @@ import "./RetailStore.sol";
 import "./Factory.sol";
 import "./Logistics.sol";
 
-contract RegistrarSupplyLedger is LogisticsInterface {
+contract RegistrarSupplyLedger is BaseLogisticsInterface, BaseFactoryInterface, BaseEntityInterface {
     struct Entity {
         address contractAddr;
         bool status;
@@ -107,7 +107,9 @@ contract RegistrarSupplyLedger is LogisticsInterface {
     }
 }
 
-contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
+contract SupplyLedger is
+    RegistrarSupplyLedger
+{
     struct PotatoBatchRelation {
         uint256 id;
         string name;
@@ -346,6 +348,7 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
+
         chipsPacketBatchOf[chipsPacketId] = _chipsPacketBatchRelationId;
         _retailStore.chipsPacketSold(
             chipsPacketId,
@@ -355,38 +358,23 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         chipsPacketId++;
     }
 
-    function getSupplyDetailOfChipsPacket(uint256 _chipsPacketId) view public {
-        uint256 _chipsPacketBatchRelationId = chipsPacketBatchOf[
-            _chipsPacketId
-        ];
+    function getSupplyDetailOfChipsPacket(uint256 _chipsPacketId) public view {
+        // uint256 _chipsPacketBatchRelationId = chipsPacketBatchOf[_chipsPacketId];
+        // ChipsPacketBatchRelations memory _chipsPacketBatchRelations = chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId];
+        // RetailStore _retailStore = RetailStore(rSStatus[_chipsPacketBatchRelations.retailStore].contractAddr);
 
-        uint256 _potatoBatchRelationId = chipsPacketBatchRelationsOf[
-            _chipsPacketBatchRelationId
-        ].potatosRelativeId;
+        // return _retailStore.soldChipsPacket[_chipsPacketId];
 
-        address _rsAddr = chipsPacketBatchRelationsOf[
-            _chipsPacketBatchRelationId
-        ].retailStore;
-        address _lcAddr = potatBatchRelationOf[_potatoBatchRelationId]
-            .localCollector;
-        address _factoryAddr = potatBatchRelationOf[_potatoBatchRelationId]
-            .factory;
-        address _farmAddr = potatBatchRelationOf[_potatoBatchRelationId].farm;
-
-        Farm _farm = Farm(farmStatus[_farmAddr].contractAddr);
-
-        // uint256 _farmToLcLogisticId = _farm.farmPotatoBatchDetailOf[_potatoBatchRelationId].logisticId;
-
-        LocalCollector _localCollector = LocalCollector(
-            lCStatus[_lcAddr].contractAddr
-        );
-        Factory _Factory = Factory(factoryStatus[_factoryAddr].contractAddr);
-        RetailStore _retailStore = RetailStore(
-            rSStatus[_rsAddr].contractAddr
-        );
+        // address _lcAddr = potatBatchRelationOf[_potatoBatchRelationId]
+        //     .localCollector;
+        // address _factoryAddr = potatBatchRelationOf[_potatoBatchRelationId]
+        //     .factory;
+        // address _farmAddr = potatBatchRelationOf[_potatoBatchRelationId].farm;
 
 
-        Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
+        // Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
+        // ChipsPacketDetail memory _chipsBatchPacket = _retailStore.ArrivedBatchDetails[_chipsPacketBatchRelationId];
+
     }
 
     //

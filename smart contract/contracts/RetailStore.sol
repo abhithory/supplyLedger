@@ -3,41 +3,16 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
-contract RetailStore {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
-    address public registrar;
+import "./BaseEntityContract.sol";
 
-    struct ChipsBatchDetail {
-        uint256 logisticId;
-        uint256 weight;
-        uint256 time;
-    }
 
-    struct ChipsPacketDetail {
-        uint256 batchId;
-        uint256 weight;
-        uint256 time;
-    }
+contract RetailStore is BaseEntityContract {
+
 
     mapping(uint256 => ChipsBatchDetail) public ArrivedBatchDetails;
     mapping(uint256 => ChipsPacketDetail) public soldChipsPacket;
 
-    constructor(string memory _id, address _owner) {
-        id = _id;
-        owner = _owner;
-        registrar = msg.sender;
-    }
-
-    modifier onlyRegistrar() {
-        require(
-            msg.sender == registrar,
-            "only registrar can call this function"
-        );
-        _;
-    }
+    constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender) {}
 
     function receivedFromLogistic(
         uint256 _batchId,

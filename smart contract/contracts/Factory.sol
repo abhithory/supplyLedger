@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
-interface FactoryInterface {
+import "./BaseEntityContract.sol";
+
+
+interface BaseFactoryInterface {
     enum Flavor {
         Barbecue,
         SourCreamAndOnion,
@@ -76,41 +79,13 @@ interface FactoryInterface {
     }
 }
 
-contract Factory is FactoryInterface {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
-    address public registrar;
+contract Factory is BaseEntityContract,BaseFactoryInterface {
 
     mapping(uint256 => ChipsBatch) public chipsBatchOf;
-
-    struct PotatoBatchDetail {
-        uint256 logisticId;
-        uint256 weight;
-        uint256 oqs;
-        uint256 time;
-    }
-
-    struct ChipsBatchDetail {
-        uint256 logisticId;
-        uint256 weight;
-        uint256 time;
-    }
-
     mapping(uint256 => PotatoBatchDetail) public ArrivedBatchDetails;
     mapping(uint256 => ChipsBatchDetail) public DispatchedBatchDetails;
 
-    constructor(string memory _id, address _owner) {
-        id = _id;
-        owner = _owner;
-        registrar = msg.sender;
-    }
-
-    modifier onlyRegistrar() {
-        require(msg.sender == registrar, "");
-        _;
-    }
+    constructor(string memory _id, address _owner)  BaseEntityContract(_id,_owner, msg.sender)  {}
 
     function potatoBatchStoredAtFactory(
         uint256 _batchDetailsId,
