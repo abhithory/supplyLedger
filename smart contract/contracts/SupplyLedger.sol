@@ -10,7 +10,7 @@ import "./RetailStore.sol";
 import "./Factory.sol";
 import "./Logistics.sol";
 
-contract RegistrarSupplyLedger {
+contract RegistrarSupplyLedger is LogisticsInterface {
     struct Entity {
         address contractAddr;
         bool status;
@@ -67,7 +67,7 @@ contract RegistrarSupplyLedger {
     modifier onlyLogistic() {
         require(
             logisticStatus[msg.sender].status,
-            "Only the registered Retail store can call"
+            "Only the registered Logistics can call"
         );
         _; // Continue executing the function body
     }
@@ -171,10 +171,13 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         potatBatchRelationOf[_potatoBatchRelationId]
             .localCollector = _localColloctor;
 
-        Logistics _logi = Logistics(logisticStatus[_logisticsAddr].contractAddr);
+        Logistics _logi = Logistics(
+            logisticStatus[_logisticsAddr].contractAddr
+        );
 
         // uint256 _shipmentId1 = _logi.shipmentId();
         uint256 _shipmentId = _logi.createShipment(
+            _potatoBatchRelationId,
             farmStatus[msg.sender].contractAddr,
             lCStatus[_localColloctor].contractAddr
         );
@@ -185,6 +188,15 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             _oqc,
             _weight
         );
+    }
+
+    function updateShipmentStatusInLogistics(
+        uint256 _shipmentId,
+        ShipmentStatus _status
+        // uint256 _weight
+    ) public onlyLogistic {
+        Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
+        _logi.updateShipmentStatus(_shipmentId,_status);
     }
 
     // food item reached at local colloctor
@@ -217,8 +229,11 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             lCStatus[msg.sender].contractAddr
         );
 
-        Logistics _logi = Logistics(logisticStatus[_logisticsAddr].contractAddr);
+        Logistics _logi = Logistics(
+            logisticStatus[_logisticsAddr].contractAddr
+        );
         uint256 _shipmentId = _logi.createShipment(
+            _potatoBatchRelationId,
             lCStatus[msg.sender].contractAddr,
             factoryStatus[_factory].contractAddr
         );
@@ -281,8 +296,11 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
 
         chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore = _rs;
 
-        Logistics _logi = Logistics(logisticStatus[_logisticsAddr].contractAddr);
+        Logistics _logi = Logistics(
+            logisticStatus[_logisticsAddr].contractAddr
+        );
         uint256 _shipmentId = _logi.createShipment(
+            _chipsPacketBatchId,
             factoryStatus[msg.sender].contractAddr,
             rSStatus[_rs].contractAddr
         );
@@ -309,7 +327,10 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         _retailStore.chipsBatchStoredAtRS(_batchDetailsId, _weight);
     }
 
-    function itemPurchased(uint256 _chipsPacketBatchId, uint256 _packetWeight) public onlyRS {
+    function itemPurchased(
+        uint256 _chipsPacketBatchId,
+        uint256 _packetWeight
+    ) public onlyRS {
         require(
             chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore ==
                 msg.sender,
@@ -320,7 +341,11 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             rSStatus[msg.sender].contractAddr
         );
         chipsPacketBatchOf[chipsPacketId] = _chipsPacketBatchId;
-        _retailStore.chipsPacketSold(_chipsPacketBatchId,chipsPacketId,_packetWeight);
+        _retailStore.chipsPacketSold(
+            _chipsPacketBatchId,
+            chipsPacketId,
+            _packetWeight
+        );
     }
 
     //

@@ -104,7 +104,7 @@ describe("SupplyLedger", function () {
 
 
 
-    let farmEntity: any, lcEntity: any, rsEntity: any;
+    let farmEntity: any, lcEntity: any, rsEntity: any, logisticsEntity:any;
     let _potatoBatchRelationId: number;
     let _farmToLcLogisticsId: number;
 
@@ -126,6 +126,7 @@ describe("SupplyLedger", function () {
 
     async function dispactchPotatoBatchToLC(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         lcEntity = await SupplyLedger.lCStatus(localCollector.address);
+        logisticsEntity = await SupplyLedger.logisticStatus(logistics.address);
         await SupplyLedger.connect(farm).dispatchPotatoBatchToLC(_potatoBatchRelationId, localCollector.address, oqsDispatchFarm, weightDispatchFarm, logistics.address);
         const FarmContract = await ethers.getContractFactory("Farm");
         const farmContract = FarmContract.attach(farmEntity.contractAddr);
@@ -158,13 +159,48 @@ describe("SupplyLedger", function () {
 
 
 
-    async function collectAtLC(SupplyLedger: any, farm: any, localCollector: any) {
+    async function updateLogisticsStates(logisticsId:number,SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        const logisticsContract = await ethers.getContractFactory("Logistics");
+        const _logisticsContract = logisticsContract.attach(logisticsEntity.contractAddr);
+        let _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        // console.log(_shipment);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,1);
+        _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        // console.log(_shipment.timeAtLoaded);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,2);
+        _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        // console.log(_shipment.timeAtDispatched);
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,3);
+        _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        // console.log(_shipment.timeAtArrived);
+
+        await SupplyLedger.connect(logistics).updateShipmentStatusInLogistics(logisticsId,4);
+        _shipment = await _logisticsContract.shipmentOf(logisticsId);
+        console.log(_shipment);
+    }
+
+    async function checkArrivedBatchDetailsInLC(logisticsId:number,SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        const localCollectorContract = await ethers.getContractFactory("LocalCollector");
+        const _localCollectorContract = localCollectorContract.attach(lcEntity.contractAddr);
+        let _arrivedBatchDetails = await _localCollectorContract.ArrivedBatchDetails(logisticsId);
+
+        console.log(_arrivedBatchDetails);
+        
+
+    }
+
+
+    async function storePotatoBatchAtLC(SupplyLedger: any, farm: any, localCollector: any) {
         await SupplyLedger.connect(localCollector).potatoBatchStoredAtLC(_potatoBatchRelationId, oqsReachLC, weightReachLC);
 
         const LocalCollector = await ethers.getContractFactory("LocalCollector");
         const _localCollector = LocalCollector.attach(lcEntity.contractAddr);
-        const _lcData = await _localCollector.itemDetailFromLocalCollector(_potatoBatchRelationId);
-        // console.log(_lcData);`
+        let _lcData = await _localCollector.ArrivedBatchDetails(_potatoBatchRelationId);
+        console.log(_lcData);
+
+        _lcData = await _localCollector.ArrivedBatchDetails(_potatoBatchRelationId);
+
     }
 
 
@@ -182,23 +218,38 @@ describe("SupplyLedger", function () {
     }
 
     describe("Working with Local Collector", function () {
-        return
-        it("Should collect food by local collector", async function () {
+
+        it("Should update Logistics Details in Local collector", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
-            await collectAtLC(SupplyLedger, farm, localCollector);
+            await updateLogisticsStates(_farmToLcLogisticsId,SupplyLedger, farm, localCollector, factory, retailStore, logistics );
+            await checkArrivedBatchDetailsInLC(_farmToLcLogisticsId,SupplyLedger, farm, localCollector, factory, retailStore, logistics )
         });
+        
+        return 
+        it("Should collect food by local collector", async function () {
+            const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
+            await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
+        });
+
         it("Should dispatch to retail store", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await collectAtLC(SupplyLedger, farm, localCollector);
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
 
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -241,7 +292,7 @@ describe("SupplyLedger", function () {
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await collectAtLC(SupplyLedger, farm, localCollector);
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
@@ -254,7 +305,7 @@ describe("SupplyLedger", function () {
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await collectAtLC(SupplyLedger, farm, localCollector);
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await collectAtRS(SupplyLedger, farm, localCollector, retailStore)
@@ -372,7 +423,7 @@ describe("SupplyLedger", function () {
             await addPotatoBatchInFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await deployLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispactchPotatoBatchToLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-            await collectAtLC(SupplyLedger, farm, localCollector);
+            await storePotatoBatchAtLC(SupplyLedger, farm, localCollector);
             await deployRS(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await dispatchAtLC(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await collectAtRS(SupplyLedger, farm, localCollector, retailStore)

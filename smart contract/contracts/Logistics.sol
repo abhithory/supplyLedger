@@ -6,14 +6,8 @@ contract CommonEntity{
     function receivedFromLogistic(uint256 _logisticId, uint256 _weight) public{}
 }
 
-// Realtime checking with external apis of status of shipment
-contract Logistics {
-    string public id;
-    string public name;
-    string public location;
-    address public owner;
-    address public registrar;
-
+interface LogisticsInterface{
+    
     enum ShipmentStatus {
         NotLoaded,
         Loaded,
@@ -25,6 +19,16 @@ contract Logistics {
         Arrived,
         UnLoaded
     }
+}
+
+// Realtime checking with external apis of status of shipment
+contract Logistics is LogisticsInterface {
+    string public id;
+    string public name;
+    string public location;
+    address public owner;
+    address public registrar;
+
     // struct Document {
     //     uint256 documentId;
     //     string documentType;
@@ -32,7 +36,8 @@ contract Logistics {
     //     string documentHash;
     // }
     struct Shipment {
-        uint256 shipmentId;
+        // uint256 shipmentId;
+        uint256 batchId;
         ShipmentStatus status;
         address origin;
         address destination;
@@ -43,7 +48,7 @@ contract Logistics {
         uint256 timeAtUnLoaded;
         //  Document[] docs;
     }
-    mapping(uint256 => Shipment) public shipments;
+    mapping(uint256 => Shipment) public shipmentOf;
     uint256 public shipmentId;
 
     constructor(string memory _id, address _owner) {
@@ -61,12 +66,13 @@ contract Logistics {
     }
 
     function createShipment(
+        uint256 _batchId,
         address _origin,
         address _destination
     ) public onlyRegistrar returns (uint256) {
         shipmentId++;
-        shipments[shipmentId] = Shipment(
-            shipmentId,
+        shipmentOf[shipmentId] = Shipment(
+            _batchId,
             ShipmentStatus.NotLoaded,
             _origin,
             _destination,
@@ -81,24 +87,24 @@ contract Logistics {
 
     function updateShipmentStatus(
         uint256 _shipmentId,
-        ShipmentStatus _status,
-        uint256 _weight
+        ShipmentStatus _status
+        // uint256 _weight
     ) public onlyRegistrar {
         require(_shipmentId <= shipmentId, "Invalid shipment ID");
-        shipments[_shipmentId].status = _status;
+        shipmentOf[_shipmentId].status = _status;
 
         if (_status == ShipmentStatus.Loaded) {
-            shipments[_shipmentId].timeAtLoaded = block.timestamp;
+            shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
         } else if (_status == ShipmentStatus.InTransit) {
-            shipments[_shipmentId].timeAtDispatched = block.timestamp;
+            shipmentOf[_shipmentId].timeAtDispatched = block.timestamp;
         } else if (_status == ShipmentStatus.Arrived) {
-            shipments[_shipmentId].timeAtArrived = block.timestamp;
+            shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
         } else if (_status == ShipmentStatus.UnLoaded) {
-            require(_weight >= 0, "wight of products should be greater than zero");
-            shipments[_shipmentId].timeAtUnLoaded = block.timestamp;
+            // require(_weight > 0, "wight of products should be greater than zero");
+            shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
 
-            CommonEntity _entity = CommonEntity(shipments[_shipmentId].destination);
-            _entity.receivedFromLogistic(_shipmentId,_weight);
+            CommonEntity _entity = CommonEntity(shipmentOf[_shipmentId].destination);
+            _entity.receivedFromLogistic(shipmentOf[_shipmentId].batchId,_shipmentId);
         }
     }
 
