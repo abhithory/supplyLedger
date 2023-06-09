@@ -199,14 +199,14 @@ contract Logistics is
 
         req.add(
             "urlID",
-            string(abi.encodePacked("https://api/ ", uintToString(_shipmentId)))
+            string(abi.encodePacked("https://api-supplyledger.onrender.com/api/", uintToString(_shipmentId)))
         );
 
         // {"BTC":0.06934}
         req.add("pathID", "ID");
         req.add(
             "urlSTATUS",
-            string(abi.encodePacked("https://api/ ", uintToString(_shipmentId)))
+            string(abi.encodePacked("https://api-supplyledger.onrender.com/api/", uintToString(_shipmentId)))
         );
         req.add("pathStatus", "STATUS");
         sendChainlinkRequest(req, fee); // MWR API.
