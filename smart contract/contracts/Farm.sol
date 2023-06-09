@@ -53,24 +53,8 @@ contract Farm is FarmStructs {
     address public owner;
     address public registrar;
 
-
-    // // one batch which containes many potatos
-    // struct FarmItemBatch {
-    //     uint256 logisticId;
-    //     BatchQuality batchQuality;
-    //     uint256 batchWeight; // in kg
-    //     // oqs - overalll quailty score => 0-100
-    //     uint256 oqsFarm;   // oqs when farmer collect potatos batch from farm 
-    //     uint256 collectedAt;  // time when potatos are collected
-    //     uint256 weightDispatch;  // weight at the time of potatos batch dispatched To Local Collector
-    //     uint256 oqsDispatch;  // oqs at the time of potatos batch dispatched To Local Collector
-    //     uint256 dispatchedAt; //time of potatos batch dispatched To Local Collector
-    //     address dispatchedTo;
-    // }
-
-
     // one batch which containes many potatos
-    struct FarmItemBatch {
+    struct FarmPotatoBatchDetail {
         uint256 logisticId;
         BatchQuality batchQuality;
         uint256 batchWeight; // in kg
@@ -79,11 +63,9 @@ contract Farm is FarmStructs {
         uint256 collectedAt;  // time when potatos are collected
         uint256 weightDispatch;  // weight at the time of potatos batch dispatched To Local Collector
         uint256 oqsDispatch;  // oqs at the time of potatos batch dispatched To Local Collector
-        // uint256 dispatchedAt; //time of potatos batch dispatched To Local Collector
-        // address dispatchedTo;
     }
 
-    mapping(uint256 => FarmItemBatch) public itemDetailFromFarm;
+    mapping(uint256 => FarmPotatoBatchDetail) public farmPotatoBatchDetailOf; 
 
     constructor(string memory _id, address _owner) {
         id = _id;
@@ -102,10 +84,10 @@ contract Farm is FarmStructs {
         uint256 _ww,
         uint256 _oqs
     ) public onlyRegistrar {
-        itemDetailFromFarm[_id].batchQuality = _qq;
-        itemDetailFromFarm[_id].batchWeight = _ww;
-        itemDetailFromFarm[_id].oqsFarm = _oqs;
-        itemDetailFromFarm[_id].collectedAt = block.timestamp;
+        farmPotatoBatchDetailOf[_id].batchQuality = _qq;
+        farmPotatoBatchDetailOf[_id].batchWeight = _ww;
+        farmPotatoBatchDetailOf[_id].oqsFarm = _oqs;
+        farmPotatoBatchDetailOf[_id].collectedAt = block.timestamp;
     }
 
     function potatoBatchDispatchedFromFarm(
@@ -114,10 +96,10 @@ contract Farm is FarmStructs {
         uint256 _oqs,
         uint256 _ww
     ) public onlyRegistrar {
-        itemDetailFromFarm[_potatoBatchRelationId].logisticId = _logisticId;
-        itemDetailFromFarm[_potatoBatchRelationId].weightDispatch = _ww;
-        itemDetailFromFarm[_potatoBatchRelationId].oqsDispatch = _oqs;
-        // itemDetailFromFarm[_id].dispatchedAt = block.timestamp;
-        // itemDetailFromFarm[_id].dispatchedTo = _dispatedTo;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId].logisticId = _logisticId;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId].weightDispatch = _ww;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId].oqsDispatch = _oqs;
+        // farmPotatoBatchDetailOf[_id].dispatchedAt = block.timestamp;
+        // farmPotatoBatchDetailOf[_id].dispatchedTo = _dispatedTo;
     }
 }

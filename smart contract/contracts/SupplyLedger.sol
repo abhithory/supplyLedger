@@ -171,14 +171,13 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         potatBatchRelationOf[_potatoBatchRelationId]
             .localCollector = _localColloctor;
 
-        Logistics _logi = Logistics(_logisticsAddr);
+        Logistics _logi = Logistics(logisticStatus[_logisticsAddr].contractAddr);
+
+        // uint256 _shipmentId1 = _logi.shipmentId();
         uint256 _shipmentId = _logi.createShipment(
             farmStatus[msg.sender].contractAddr,
             lCStatus[_localColloctor].contractAddr
         );
-
-        console.log("dispatchPotatoBatchToLC", _shipmentId);
-
         Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
         _farm.potatoBatchDispatchedFromFarm(
             _potatoBatchRelationId,
@@ -218,7 +217,7 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             lCStatus[msg.sender].contractAddr
         );
 
-        Logistics _logi = Logistics(_logisticsAddr);
+        Logistics _logi = Logistics(logisticStatus[_logisticsAddr].contractAddr);
         uint256 _shipmentId = _logi.createShipment(
             lCStatus[msg.sender].contractAddr,
             factoryStatus[_factory].contractAddr
@@ -282,7 +281,7 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
 
         chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore = _rs;
 
-        Logistics _logi = Logistics(_logisticsAddr);
+        Logistics _logi = Logistics(logisticStatus[_logisticsAddr].contractAddr);
         uint256 _shipmentId = _logi.createShipment(
             factoryStatus[msg.sender].contractAddr,
             rSStatus[_rs].contractAddr
