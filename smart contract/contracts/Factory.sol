@@ -131,11 +131,11 @@ contract Factory is FactoryInterface {
     }
 
     function dispactchChipsBatchToRS(
-        uint256 _chipsPacketBatchId,
+        uint256 _chipsPacketBatchRelationId,
         uint256 _logisticId,
         uint256 _weight
     ) public onlyRegistrar {
-        DispatchedBatchDetails[_chipsPacketBatchId] = ChipsBatchDetail(
+        DispatchedBatchDetails[_chipsPacketBatchRelationId] = ChipsBatchDetail(
             _logisticId,
             _weight,
             block.timestamp

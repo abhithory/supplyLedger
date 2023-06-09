@@ -123,7 +123,7 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         uint256 potatosRelativeId;
         address retailStore;
     }
-    uint256 public chipsPacketBatchId = 1;
+    uint256 public chipsPacketBatchRelationId = 1;
     mapping(uint256 => ChipsPacketBatchRelations)
         public chipsPacketBatchRelationsOf;
 
@@ -193,10 +193,13 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
     function updateShipmentStatusInLogistics(
         uint256 _shipmentId,
         ShipmentStatus _status
+    )
+        public
         // uint256 _weight
-    ) public onlyLogistic {
+        onlyLogistic
+    {
         Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
-        _logi.updateShipmentStatus(_shipmentId,_status);
+        _logi.updateShipmentStatus(_shipmentId, _status);
     }
 
     // food item reached at local colloctor
@@ -273,37 +276,43 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
         );
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
-        _Factory.chipsPrepared(chipsPacketBatchId, _details);
+        _Factory.chipsPrepared(chipsPacketBatchRelationId, _details);
 
-        chipsPacketBatchRelationsOf[chipsPacketBatchId]
+        chipsPacketBatchRelationsOf[chipsPacketBatchRelationId]
             .potatosRelativeId = _potatoBatchRelationId;
-        chipsPacketBatchId++;
+        chipsPacketBatchRelationId++;
     }
 
     function chipsPacketBatchDispatchedToRS(
-        uint256 _chipsPacketBatchId,
+        uint256 _chipsPacketBatchRelationId,
         address _rs,
         uint256 _ww,
         address _logisticsAddr
     ) public onlyFactory {
         require(
-            potatBatchRelationOf[_chipsPacketBatchId].factory == msg.sender,
+            potatBatchRelationOf[_chipsPacketBatchRelationId].factory ==
+                msg.sender,
             "Factory is not correct"
         );
 
-        chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore = _rs;
+        chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId]
+            .retailStore = _rs;
 
         Logistics _logi = Logistics(
             logisticStatus[_logisticsAddr].contractAddr
         );
         uint256 _shipmentId = _logi.createShipment(
-            _chipsPacketBatchId,
+            _chipsPacketBatchRelationId,
             factoryStatus[msg.sender].contractAddr,
             rSStatus[_rs].contractAddr
         );
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
-        _Factory.dispactchChipsBatchToRS(_chipsPacketBatchId, _shipmentId, _ww);
+        _Factory.dispactchChipsBatchToRS(
+            _chipsPacketBatchRelationId,
+            _shipmentId,
+            _ww
+        );
     }
 
     // chips batch item reached at retail store
@@ -321,30 +330,63 @@ contract SupplyLedger is RegistrarSupplyLedger, FarmStructs, FactoryInterface {
             rSStatus[msg.sender].contractAddr
         );
 
-
         _retailStore.chipsBatchStoredAtRS(_batchDetailsId, _weight);
     }
 
     function chipsPacketSold(
-        uint256 _chipsPacketBatchId,
+        uint256 _chipsPacketBatchRelationId,
         uint256 _packetWeight
     ) public onlyRS {
         require(
-            chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore ==
-                msg.sender,
+            chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId]
+                .retailStore == msg.sender,
             "Retail Store is not correct"
         );
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
         );
-        chipsPacketBatchOf[chipsPacketId] = _chipsPacketBatchId;
+        chipsPacketBatchOf[chipsPacketId] = _chipsPacketBatchRelationId;
         _retailStore.chipsPacketSold(
             chipsPacketId,
-            _chipsPacketBatchId,
+            _chipsPacketBatchRelationId,
             _packetWeight
         );
         chipsPacketId++;
+    }
+
+    function getSupplyDetailOfChipsPacket(uint256 _chipsPacketId) view public {
+        uint256 _chipsPacketBatchRelationId = chipsPacketBatchOf[
+            _chipsPacketId
+        ];
+
+        uint256 _potatoBatchRelationId = chipsPacketBatchRelationsOf[
+            _chipsPacketBatchRelationId
+        ].potatosRelativeId;
+
+        address _rsAddr = chipsPacketBatchRelationsOf[
+            _chipsPacketBatchRelationId
+        ].retailStore;
+        address _lcAddr = potatBatchRelationOf[_potatoBatchRelationId]
+            .localCollector;
+        address _factoryAddr = potatBatchRelationOf[_potatoBatchRelationId]
+            .factory;
+        address _farmAddr = potatBatchRelationOf[_potatoBatchRelationId].farm;
+
+        Farm _farm = Farm(farmStatus[_farmAddr].contractAddr);
+
+        // uint256 _farmToLcLogisticId = _farm.farmPotatoBatchDetailOf[_potatoBatchRelationId].logisticId;
+
+        LocalCollector _localCollector = LocalCollector(
+            lCStatus[_lcAddr].contractAddr
+        );
+        Factory _Factory = Factory(factoryStatus[_factoryAddr].contractAddr);
+        RetailStore _retailStore = RetailStore(
+            rSStatus[_rsAddr].contractAddr
+        );
+
+
+        Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
     }
 
     //
