@@ -26,11 +26,13 @@ contract LocalCollector is BaseEntityContract {
     function dispatchPotatoBatchToFactory(
         uint256 _batchDetailsId,
         uint256 _logisticId,
+        address _logisticContractAddr,
         uint256 _weight,
         uint256 _oqs
     ) public {
         DispatchedBatchDetails[_batchDetailsId] = PotatoBatchDetail(
             _logisticId,
+        _logisticContractAddr,
             _weight,
             _oqs,
             block.timestamp

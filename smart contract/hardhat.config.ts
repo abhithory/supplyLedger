@@ -4,7 +4,7 @@ import "@nomicfoundation/hardhat-toolbox";
 const config: HardhatUserConfig = {
   // solidity: "0.8.18",
   solidity: {
-    version: "0.8.18",
+    version: "0.8.9",
     settings: {
       optimizer: {
         // allowUnlimitedContractSize: true,
@@ -16,7 +16,8 @@ const config: HardhatUserConfig = {
   networks:{
     // local:{
     // }
-  }
+  },
+  
 };
 
 export default config;

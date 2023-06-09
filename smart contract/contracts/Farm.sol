@@ -25,11 +25,13 @@ contract Farm is BaseEntityContract {
     function potatoBatchDispatchedFromFarm(
         uint256 _potatoBatchRelationId,
         uint256 _logisticId,
+        address _logisticContractAddr,
         uint256 _oqs,
         uint256 _ww
     ) public onlyRegistrar {
         farmPotatoBatchDetailOf[_potatoBatchRelationId]
             .logisticId = _logisticId;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId].logisticContractAddr = _logisticContractAddr;
         farmPotatoBatchDetailOf[_potatoBatchRelationId].weightDispatch = _ww;
         farmPotatoBatchDetailOf[_potatoBatchRelationId].oqsDispatch = _oqs;
     }

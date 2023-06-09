@@ -46,6 +46,7 @@ interface BaseEntityInterface {
 
     struct FarmPotatoBatchDetail {
         uint256 logisticId;
+        address logisticContractAddr;
         BatchQuality batchQuality;
         uint256 batchWeight; // in kg
         // oqs - overalll quailty score => 0-100
@@ -59,6 +60,7 @@ interface BaseEntityInterface {
 
     struct PotatoBatchDetail {
         uint256 logisticId;
+        address logisticContractAddr;
         uint256 weight;
         uint256 oqs;
         uint256 time;
@@ -66,6 +68,7 @@ interface BaseEntityInterface {
 
     struct ChipsBatchDetail {
         uint256 logisticId;
+        address logisticContractAddr;
         uint256 weight;
         uint256 time;
     }

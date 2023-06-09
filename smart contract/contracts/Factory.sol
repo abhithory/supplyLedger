@@ -5,7 +5,6 @@ pragma solidity ^0.8.9;
 
 import "./BaseEntityContract.sol";
 
-
 interface BaseFactoryInterface {
     enum Flavor {
         Barbecue,
@@ -79,13 +78,15 @@ interface BaseFactoryInterface {
     }
 }
 
-contract Factory is BaseEntityContract,BaseFactoryInterface {
-
+contract Factory is BaseEntityContract, BaseFactoryInterface {
     mapping(uint256 => ChipsBatch) public chipsBatchOf;
     mapping(uint256 => PotatoBatchDetail) public ArrivedBatchDetails;
     mapping(uint256 => ChipsBatchDetail) public DispatchedBatchDetails;
 
-    constructor(string memory _id, address _owner)  BaseEntityContract(_id,_owner, msg.sender)  {}
+    constructor(
+        string memory _id,
+        address _owner
+    ) BaseEntityContract(_id, _owner, msg.sender) {}
 
     function potatoBatchStoredAtFactory(
         uint256 _batchDetailsId,
@@ -108,10 +109,12 @@ contract Factory is BaseEntityContract,BaseFactoryInterface {
     function dispactchChipsBatchToRS(
         uint256 _chipsPacketBatchRelationId,
         uint256 _logisticId,
+        address _logisticContractAddr,
         uint256 _weight
     ) public onlyRegistrar {
         DispatchedBatchDetails[_chipsPacketBatchRelationId] = ChipsBatchDetail(
             _logisticId,
+            _logisticContractAddr,
             _weight,
             block.timestamp
         );
@@ -122,5 +125,23 @@ contract Factory is BaseEntityContract,BaseFactoryInterface {
         uint256 _logisticId
     ) public {
         ArrivedBatchDetails[_batchId].logisticId = _logisticId;
+    }
+
+    function getChipsBatchFactoryProccessingDetails(
+        uint256 batchId
+    ) public view returns (ChipsBatch memory) {
+        return chipsBatchOf[batchId];
+    }
+
+    function getPotatoBatchArrivedDetail(
+        uint256 potatoBatchId
+    ) public view returns (PotatoBatchDetail memory) {
+        return ArrivedBatchDetails[potatoBatchId];
+    }
+
+    function getChipsBatchDispatchDetail(
+        uint256 chipsBatchId
+    ) public view returns (ChipsBatchDetail memory) {
+        return DispatchedBatchDetails[chipsBatchId];
     }
 }

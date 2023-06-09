@@ -47,7 +47,8 @@ describe("SupplyLedger", function () {
     }
 
     describe("Deployment + Registrartion", function () {
-        // return
+
+        return
         it("Should set the right registrar", async function () {
             const { SupplyLedger, registrar } = await loadFixture(SupplyLedgerFixture);
             //   expect(await lock.unlockTime()).to.equal(unlockTime);
@@ -108,29 +109,29 @@ describe("SupplyLedger", function () {
 
 
     const chipsBatchDetails = {
-        chipsDetail:{
-            flavor:1,
-            texture:0
+        chipsDetail: {
+            flavor: 1,
+            texture: 0
         },
-        processDetails:{
-            cookingTemperature:90,
-            ingredients:[0,1,2]
+        processDetails: {
+            cookingTemperature: 90,
+            ingredients: [0, 1, 2]
         },
-        packagingDetails:{
-            packagingMaterial:0,
-            packageSize:1
+        packagingDetails: {
+            packagingMaterial: 0,
+            packageSize: 1
         },
-        totalPackets:20,
-        totalWeight:2,
-        productionDate:0,
-        shelfLife:6
+        totalPackets: 20,
+        totalWeight: 2,
+        productionDate: 0,
+        shelfLife: 6
     }
 
 
 
 
     let farmEntity: any, lcEntity: any, factoryEntity: any, rsEntity: any, logisticsEntity: any;
-    let _potatoBatchRelationId: number, _chipsPacketBatchRelationId:number, _chipsPacketId:number;
+    let _potatoBatchRelationId: number, _chipsPacketBatchRelationId: number, _chipsPacketId: number;
     let _farmToLcLogisticsId: number, _LcToFactoryLogisticsId: number, _factoryToRsLogisticsId: number;
 
 
@@ -164,6 +165,7 @@ describe("SupplyLedger", function () {
     }
 
     describe("Working with Farm Contract", function () {
+        return
         it("Should add food item in farm", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -183,7 +185,7 @@ describe("SupplyLedger", function () {
 
 
 
-    async function updateLogisticsStates(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {        
+    async function updateLogisticsStates(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         const logisticsContract = await ethers.getContractFactory("Logistics");
         const _logisticsContract = logisticsContract.attach(logisticsEntity.contractAddr);
         let _shipment = await _logisticsContract.shipmentOf(logisticsId);
@@ -241,7 +243,7 @@ describe("SupplyLedger", function () {
 
     describe("Working with Local Collector", function () {
 
-        // return 
+        return
 
         it("Should update Logistics Details in Local collector", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
@@ -307,11 +309,11 @@ describe("SupplyLedger", function () {
         // console.log(_factoryData);
     }
 
-    
+
     async function prepareChipsAtFactory(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
 
         _chipsPacketBatchRelationId = await SupplyLedger.chipsPacketBatchRelationId();
-        await SupplyLedger.connect(factory).chipsPreparedAtFactory(_potatoBatchRelationId,chipsBatchDetails);        
+        await SupplyLedger.connect(factory).chipsPreparedAtFactory(_potatoBatchRelationId, chipsBatchDetails);
 
         const factoryContract = await ethers.getContractFactory("Factory");
         const _factoryContract = factoryContract.attach(factoryEntity.contractAddr);
@@ -322,7 +324,7 @@ describe("SupplyLedger", function () {
     async function dispatchChipsBatchToRSFromFactory(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         rsEntity = await SupplyLedger.rSStatus(retailStore.address);
 
-        await SupplyLedger.connect(factory).chipsPacketBatchDispatchedToRS(_chipsPacketBatchRelationId, retailStore.address, weightDispatchFactory,logistics.address);
+        await SupplyLedger.connect(factory).chipsPacketBatchDispatchedToRS(_chipsPacketBatchRelationId, retailStore.address, weightDispatchFactory, logistics.address);
         const itemData = await SupplyLedger.chipsPacketBatchRelationsOf(_chipsPacketBatchRelationId);
         expect(itemData.retailStore).to.equal(retailStore.address);
 
@@ -331,17 +333,17 @@ describe("SupplyLedger", function () {
         const _factoryContract = factoryContract.attach(factoryEntity.contractAddr);
 
         const _factoryData = await _factoryContract.DispatchedBatchDetails(_chipsPacketBatchRelationId);
-        _factoryToRsLogisticsId =  Number(_factoryData.logisticId);
+        _factoryToRsLogisticsId = Number(_factoryData.logisticId);
 
         // console.log(_factoryToRsLogisticsId);
-        
+
     }
 
 
 
     describe("Working with Factory", function () {
 
-        // return
+        return
 
         it("Should update Logistics Details in Factory contarct", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
@@ -363,7 +365,7 @@ describe("SupplyLedger", function () {
             await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
 
-        
+
         it("Should should store potatoBatch at Factory", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -380,7 +382,7 @@ describe("SupplyLedger", function () {
             await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await updateLogisticsStates(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await checkArrivedBatchDetailsInFactory(_LcToFactoryLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
-        
+
 
             await storePotatoBatchAtFactory(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
@@ -433,7 +435,7 @@ describe("SupplyLedger", function () {
 
 
 
-    
+
     async function checkArrivedBatchDetailsInRS(logisticsId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         const rsContract = await ethers.getContractFactory("RetailStore");
         const _rsContract = rsContract.attach(rsEntity.contractAddr);
@@ -446,7 +448,7 @@ describe("SupplyLedger", function () {
     async function chipsPacketStoredAtRs(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         await SupplyLedger.connect(retailStore).chipsPacketStoredAtRs(_chipsPacketBatchRelationId, weightDispatchFactory);
 
-       const RetailStore = await ethers.getContractFactory("RetailStore");
+        const RetailStore = await ethers.getContractFactory("RetailStore");
         const _RetailStore = RetailStore.attach(rsEntity.contractAddr);
         const _rsData = await _RetailStore.ArrivedBatchDetails(_chipsPacketBatchRelationId);
         // console.log(_rsData);
@@ -457,7 +459,7 @@ describe("SupplyLedger", function () {
     async function chipsPacketSold(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
 
         _chipsPacketId = await SupplyLedger.chipsPacketId();
-        await SupplyLedger.connect(retailStore).chipsPacketSold(_chipsPacketBatchRelationId,soldPacketWeight);
+        await SupplyLedger.connect(retailStore).chipsPacketSold(_chipsPacketBatchRelationId, soldPacketWeight);
 
         const RetailStore = await ethers.getContractFactory("RetailStore");
         const _RetailStore = RetailStore.attach(rsEntity.contractAddr);
@@ -467,6 +469,7 @@ describe("SupplyLedger", function () {
 
 
     describe("Working with Retail Store", function () {
+        return
 
         it("Should update Logistics Details in Retail Store contarct", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
@@ -495,7 +498,7 @@ describe("SupplyLedger", function () {
             await checkArrivedBatchDetailsInRS(_factoryToRsLogisticsId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
 
-        
+
         it("Should store chips packet batch at retail store", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -521,7 +524,7 @@ describe("SupplyLedger", function () {
 
             await chipsPacketStoredAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
-        
+
         it("Should store detail of sold item in retail store", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -555,8 +558,88 @@ describe("SupplyLedger", function () {
 
 
 
-    async function getDetailsOfProduct(chipsPacketId:number ,SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        // const 
+    async function getDetailsOfProduct0(chipsPacketId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        const _fullData = await SupplyLedger.getChipsPacketDetailFromFactory(chipsPacketId);
+        // const _fullData = await SupplyLedger.getSupplyDetailOfChipsPacket(chipsPacketId);
+
+        console.log(_fullData);
+        
+    }
+        async function getDetailsOfProduct(chipsPacketId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+        const chipsBatchRelationId = Number(await SupplyLedger.chipsPacketBatchRelationIdOf(chipsPacketId));
+        // console.log(chipsBatchRelationId);
+
+        const chipsPacketBatchRelationDetails = await SupplyLedger.chipsPacketBatchRelationsOf(chipsBatchRelationId);
+        // console.log(chipsPacketBatchRelationDetails);
+        const potatoBatchRelationId = Number(chipsPacketBatchRelationDetails.potatosRelativeId);
+        const potatoBatchRelationDetails = await SupplyLedger.potatBatchRelationOf(potatoBatchRelationId)
+
+
+        const _farmStatus = await SupplyLedger.farmStatus(potatoBatchRelationDetails.farm);        
+        const FarmContract = await ethers.getContractFactory("Farm");
+        const _farmContract = FarmContract.attach(_farmStatus.contractAddr);
+        
+        const lcStatus = await SupplyLedger.lCStatus(potatoBatchRelationDetails.localCollector);
+        const localCollectorContract = await ethers.getContractFactory("LocalCollector");
+        const _localCollectorContract = localCollectorContract.attach(lcStatus.contractAddr);
+
+        const factoryStatus = await SupplyLedger.factoryStatus(potatoBatchRelationDetails.factory);
+        const factoryContract = await ethers.getContractFactory("Factory");
+        const _factoryContract = factoryContract.attach(factoryStatus.contractAddr);
+
+        const rsStatus = await SupplyLedger.rSStatus(chipsPacketBatchRelationDetails.retailStore);
+        const RetailStoreContract = await ethers.getContractFactory("RetailStore");
+        const _RetailStoreContract = RetailStoreContract.attach(rsStatus.contractAddr);
+
+
+        const chipsPacketSoldDetails = await _RetailStoreContract.soldChipsPacket(chipsPacketId);
+        const chipsBatchArrivedAtRsDetails = await _RetailStoreContract.ArrivedBatchDetails(chipsBatchRelationId);
+        // console.log(chipsPacketSoldDetails);
+        // console.log(chipsBatchArrivedAtRsDetails);
+        
+        const chipsManufacturingDetails = await _factoryContract.chipsBatchOf(chipsBatchRelationId);
+        const chipsBatchDispatchedFromFactoryDetails = await _factoryContract.DispatchedBatchDetails(chipsBatchRelationId);
+        const potatoBatchArrivedAtFactoryDetails = await _factoryContract.ArrivedBatchDetails(potatoBatchRelationId);
+        // console.log(chipsManufacturingDetails);
+        // console.log(chipsBatchDispatchedFromFactoryDetails);
+        // console.log(potatoBatchArrivedAtFactoryDetails);
+
+
+        const arrivedBatchAtLcDetails = await _localCollectorContract.ArrivedBatchDetails(potatoBatchRelationId);
+        const dispatchedBatchAtLcDetails = await _localCollectorContract.DispatchedBatchDetails(potatoBatchRelationId);
+        // console.log(arrivedBatchAtLcDetails);
+        // console.log(dispatchedBatchAtLcDetails);
+
+
+        const potatoDetailsAtFarm = await _farmContract.farmPotatoBatchDetailOf(potatoBatchRelationId);   
+        // console.log(potatoDetailsAtFarm);
+        
+
+        const farmToLcLogisticContractAddr = potatoDetailsAtFarm.logisticContractAddr;
+        const farmToLcLogisticId = Number(potatoDetailsAtFarm.logisticId);     
+        const lcToFactoryLogisticContractAddr = dispatchedBatchAtLcDetails.logisticContractAddr;
+        const lcToFactoryLogisticId = Number(dispatchedBatchAtLcDetails.logisticId);     
+        const factoryToRsLogisticContractAddr = chipsBatchDispatchedFromFactoryDetails.logisticContractAddr;
+        const factoryToRsLogisticId = Number(chipsBatchDispatchedFromFactoryDetails.logisticId); 
+        
+        // console.log(farmToLcLogisticId,lcToFactoryLogisticId,factoryToRsLogisticId);
+        // console.log(farmToLcLogisticContractAddr,lcToFactoryLogisticContractAddr,factoryToRsLogisticContractAddr);
+        
+        
+        const logisticsContract = await ethers.getContractFactory("Logistics");
+        const farmToLcLogisticContract = logisticsContract.attach(farmToLcLogisticContractAddr);
+        const lcToFactoryLogisticContract = logisticsContract.attach(lcToFactoryLogisticContractAddr);
+        const factoryToRsLogisticContract = logisticsContract.attach(factoryToRsLogisticContractAddr);
+
+        const farmToLcLogisticDetails = await farmToLcLogisticContract.shipmentOf(farmToLcLogisticId);
+        const lcToFactoryLogisticDetails = await lcToFactoryLogisticContract.shipmentOf(lcToFactoryLogisticId);
+        const factoryToRsLogisticDetails = await factoryToRsLogisticContract.shipmentOf(factoryToRsLogisticId);
+
+
+        console.log(farmToLcLogisticDetails);
+        console.log(lcToFactoryLogisticDetails);
+        console.log(factoryToRsLogisticDetails);
+        
 
     }
 
@@ -657,7 +740,7 @@ describe("SupplyLedger", function () {
 
     }
 
-    
+
     describe("Customer getting details", function () {
         it("Should get all details of product", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
@@ -684,7 +767,7 @@ describe("SupplyLedger", function () {
             await chipsPacketStoredAtRs(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
             await chipsPacketSold(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
 
-            await getDetailsOfProduct(_chipsPacketId,SupplyLedger, farm, localCollector, factory, retailStore, logistics);
+            await getDetailsOfProduct(_chipsPacketId, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
     });
 

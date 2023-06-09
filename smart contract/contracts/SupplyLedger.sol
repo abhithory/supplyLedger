@@ -10,7 +10,11 @@ import "./RetailStore.sol";
 import "./Factory.sol";
 import "./Logistics.sol";
 
-contract RegistrarSupplyLedger is BaseLogisticsInterface, BaseFactoryInterface, BaseEntityInterface {
+contract RegistrarSupplyLedger is
+    BaseLogisticsInterface,
+    BaseFactoryInterface,
+    BaseEntityInterface
+{
     struct Entity {
         address contractAddr;
         bool status;
@@ -107,9 +111,7 @@ contract RegistrarSupplyLedger is BaseLogisticsInterface, BaseFactoryInterface, 
     }
 }
 
-contract SupplyLedger is
-    RegistrarSupplyLedger
-{
+contract SupplyLedger is RegistrarSupplyLedger {
     struct PotatoBatchRelation {
         uint256 id;
         string name;
@@ -130,7 +132,7 @@ contract SupplyLedger is
         public chipsPacketBatchRelationsOf;
 
     uint256 public chipsPacketId;
-    mapping(uint256 => uint256) public chipsPacketBatchOf;
+    mapping(uint256 => uint256) public chipsPacketBatchRelationIdOf;
 
     // Events
     // event foodItemAdded(address indexed farmAddress,string quality);
@@ -146,7 +148,8 @@ contract SupplyLedger is
         potatBatchRelationOf[potatoBatchRelationId] = PotatoBatchRelation(
             potatoBatchRelationId,
             "Potato Batch 001",
-            farmStatus[msg.sender].contractAddr,
+            // farmStatus[msg.sender].contractAddr,
+            msg.sender,
             address(0),
             address(0)
         );
@@ -187,6 +190,7 @@ contract SupplyLedger is
         _farm.potatoBatchDispatchedFromFarm(
             _potatoBatchRelationId,
             _shipmentId,
+           logisticStatus[_logisticsAddr].contractAddr,
             _oqc,
             _weight
         );
@@ -245,6 +249,7 @@ contract SupplyLedger is
         _localCollector.dispatchPotatoBatchToFactory(
             _potatoBatchRelationId,
             _shipmentId,
+           logisticStatus[_logisticsAddr].contractAddr,
             _oqs,
             _weight
         );
@@ -313,6 +318,7 @@ contract SupplyLedger is
         _Factory.dispactchChipsBatchToRS(
             _chipsPacketBatchRelationId,
             _shipmentId,
+            logisticStatus[_logisticsAddr].contractAddr,
             _ww
         );
     }
@@ -349,7 +355,9 @@ contract SupplyLedger is
             rSStatus[msg.sender].contractAddr
         );
 
-        chipsPacketBatchOf[chipsPacketId] = _chipsPacketBatchRelationId;
+        chipsPacketBatchRelationIdOf[
+            chipsPacketId
+        ] = _chipsPacketBatchRelationId;
         _retailStore.chipsPacketSold(
             chipsPacketId,
             _chipsPacketBatchRelationId,
@@ -358,24 +366,64 @@ contract SupplyLedger is
         chipsPacketId++;
     }
 
-    function getSupplyDetailOfChipsPacket(uint256 _chipsPacketId) public view {
-        // uint256 _chipsPacketBatchRelationId = chipsPacketBatchOf[_chipsPacketId];
-        // ChipsPacketBatchRelations memory _chipsPacketBatchRelations = chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId];
-        // RetailStore _retailStore = RetailStore(rSStatus[_chipsPacketBatchRelations.retailStore].contractAddr);
+    // function getChipsPacketDetailFromRs(
+    //     uint256 _chipsPacketId
+    // )
+    //     public
+    //     view
+    //     returns (
+    //         ChipsPacketDetail memory soldChipsPacketDetail,
+    //         ChipsBatchDetail memory arrivedChipsPacketBatchAtRsDetail
+    //     )
+    // {
+    //     uint256 _chipsPacketBatchRelationId = chipsPacketBatchRelationIdOf[
+    //         _chipsPacketId
+    //     ];
+    //     ChipsPacketBatchRelations
+    //         memory _chipsPacketBatchRelations = chipsPacketBatchRelationsOf[
+    //             _chipsPacketBatchRelationId
+    //         ];
+    //     RetailStore _retailStore = RetailStore(
+    //         rSStatus[_chipsPacketBatchRelations.retailStore].contractAddr
+    //     );
+    //     soldChipsPacketDetail = _retailStore.getSoldChips(_chipsPacketId);
+    //     arrivedChipsPacketBatchAtRsDetail = _retailStore.getArrivedChipsBatch(
+    //         _chipsPacketBatchRelationId
+    //     );
+    // }
 
-        // return _retailStore.soldChipsPacket[_chipsPacketId];
+    // function getChipsPacketDetailFromFactory(
+    //     uint256 _chipsPacketId
+    // )
+    //     public
+    //     view
+    //     returns (
+    //         ChipsBatch memory chipsBatchManufacturingDetails
+    //         // ChipsBatchDetail memory chipsBatchDispatchedDetailsToRs
+    //     )
+    // {
+    //     PotatoBatchRelation memory _potatoBatchRelations = potatBatchRelationOf[
+    //         chipsPacketBatchRelationsOf[chipsPacketBatchRelationIdOf[_chipsPacketId]]
+    //             .potatosRelativeId
+    //     ];
+    //     Factory _factory = Factory(
+    //         factoryStatus[_potatoBatchRelations.factory].contractAddr
+    //     );
 
-        // address _lcAddr = potatBatchRelationOf[_potatoBatchRelationId]
-        //     .localCollector;
-        // address _factoryAddr = potatBatchRelationOf[_potatoBatchRelationId]
-        //     .factory;
-        // address _farmAddr = potatBatchRelationOf[_potatoBatchRelationId].farm;
+    //     // Farm _farm = Farm(farmStatus[_potatoBatchRelations.farm].contractAddr);
+    //     // LocalCollector _localCollector = LocalCollector(lCStatus[_potatoBatchRelations.localCollector].contractAddr);
 
+    //     // Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
 
-        // Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
-        // ChipsPacketDetail memory _chipsBatchPacket = _retailStore.ArrivedBatchDetails[_chipsPacketBatchRelationId];
+    //     chipsBatchManufacturingDetails = _factory.getChipsBatchFactoryProccessingDetails(chipsPacketBatchRelationIdOf[_chipsPacketId]);
+    //     // chipsBatchDispatchedDetailsToRs = _factory.getChipsBatchDispatchDetail(_chipsPacketBatchRelationId);
 
-    }
+    //     // chipsBatchFactoryProccessingDetails = _factory.getChipsBatchFactoryProccessingDetails(_chipsPacketBatchRelationId);
+    //     // chipsBatchFactoryProccessingDetails = _factory.getChipsBatchDispatchDetail(_chipsPacketBatchRelationId);
+    //     // chipsBatchFactoryProccessingDetails = _factory.getChipsBatchDispatchDetail(getPotatoBatchArrivedDetail);
 
-    //
+    //     // address _farmAddr = potatBatchRelationOf[_potatoBatchRelationId].farm;
+
+    //     // Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
+    // }
 }
