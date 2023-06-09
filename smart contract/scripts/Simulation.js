@@ -70,14 +70,14 @@ async function main() {
     console.log(`potato batch dispatched to local collector with logistics id: ${farmToLcLogisticsId}`);
     // console.log(farmToLcLogisticsId);
     async function logisticSteps(_logisticId){
-        await supplyLedgerContract.updateShipmentStatusInLogistics(farmToLcLogisticsId,logistics,1);
-        console.log(`logistic id: ${farmToLcLogisticsId} status updated to: 1`);
-        await supplyLedgerContract.updateShipmentStatusInLogistics(farmToLcLogisticsId,logistics,2);
-        console.log(`logistic id: ${farmToLcLogisticsId} status updated to: 2`);
-        await supplyLedgerContract.updateShipmentStatusInLogistics(farmToLcLogisticsId,logistics,3);
-        console.log(`logistic id: ${farmToLcLogisticsId} status updated to: 3`);
-        await supplyLedgerContract.updateShipmentStatusInLogistics(farmToLcLogisticsId,logistics,4);
-        console.log(`logistic id: ${farmToLcLogisticsId} status updated to: 4`);
+        await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId,logistics,1);
+        console.log(`logistic id: ${_logisticId} status updated to: 1`);
+        await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId,logistics,2);
+        console.log(`logistic id: ${_logisticId} status updated to: 2`);
+        await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId,logistics,3);
+        console.log(`logistic id: ${_logisticId} status updated to: 3`);
+        await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId,logistics,4);
+        console.log(`logistic id: ${_logisticId} status updated to: 4`);
     }
     await logisticSteps(farmToLcLogisticsId);
 
