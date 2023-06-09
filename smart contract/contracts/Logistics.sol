@@ -2,13 +2,14 @@
 pragma solidity ^0.8.9;
 import "./BaseEntityContract.sol";
 
-
-contract CommonEntity{
-    function receivedFromLogistic(uint256 _logisticId, uint256 _weight) public{}
+contract CommonEntity {
+    function receivedFromLogistic(
+        uint256 _logisticId,
+        uint256 _weight
+    ) public {}
 }
 
-interface BaseLogisticsInterface{
-    
+interface BaseLogisticsInterface {
     enum ShipmentStatus {
         NotLoaded,
         Loaded,
@@ -21,7 +22,7 @@ interface BaseLogisticsInterface{
         UnLoaded
     }
 
-        struct Shipment {
+    struct Shipment {
         uint256 batchId;
         ShipmentStatus status;
         address origin;
@@ -33,24 +34,93 @@ interface BaseLogisticsInterface{
         uint256 timeAtUnLoaded;
     }
 
-        // struct Document {
+    // struct Document {
     //     uint256 documentId;
     //     string documentType;
     //     string documentName;
     //     string documentHash;
     // }
-
 }
 
-// Realtime checking with external apis of status of shipment
-contract Logistics is BaseLogisticsInterface, BaseEntityContract {
+// with external apis
+// contract Logistics is BaseLogisticsInterface, BaseEntityContract {
 
+//     uint256 public shipmentId;
+//     mapping(uint256 => Shipment) public shipmentOf;
+
+//     constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender) {}
+
+//     function createShipment(
+//         uint256 _batchId,
+//         address _origin,
+//         address _destination
+//     ) public onlyRegistrar returns (uint256) {
+//         shipmentId++;
+//         shipmentOf[shipmentId] = Shipment(
+//             _batchId,
+//             ShipmentStatus.NotLoaded,
+//             _origin,
+//             _destination,
+//             block.timestamp,
+//             0,
+//             0,
+//             0,
+//             0
+//         );
+//         return shipmentId;
+//     }
+
+//     function updateShipmentStatus(
+//         uint256 _shipmentId,
+//         ShipmentStatus _status
+//         // uint256 _weight
+//     ) public onlyRegistrar {
+//         require(_shipmentId <= shipmentId, "Invalid shipment ID");
+//         shipmentOf[_shipmentId].status = _status;
+
+//         if (_status == ShipmentStatus.Loaded) {
+//             shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
+//         } else if (_status == ShipmentStatus.InTransit) {
+//             shipmentOf[_shipmentId].timeAtDispatched = block.timestamp;
+//         } else if (_status == ShipmentStatus.Arrived) {
+//             shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
+//         } else if (_status == ShipmentStatus.UnLoaded) {
+//             shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
+//             CommonEntity _entity = CommonEntity(shipmentOf[_shipmentId].destination);
+//             _entity.receivedFromLogistic(shipmentOf[_shipmentId].batchId,_shipmentId);
+//         }
+//     }
+// }
+
+import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
+
+contract Logistics is
+    ChainlinkClient,
+    ConfirmedOwner,
+    BaseLogisticsInterface,
+    BaseEntityContract
+{
+    using Chainlink for Chainlink.Request;
+
+    uint256 public volume;
+    bytes32 private jobId;
+    uint256 private fee;
 
     uint256 public shipmentId;
     mapping(uint256 => Shipment) public shipmentOf;
 
-    constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender) {}
+    event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
 
+    constructor(
+        string memory _id,
+        address _owner
+    ) BaseEntityContract(_id, _owner, msg.sender) ConfirmedOwner(msg.sender) {
+        setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
+        setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
+        jobId = "53f9755920cd451a8fe46f5087468395";
+        fee = 1 * 10 ** 17; // 0,1 * 10**18 (Varies by network and job)
+    }
 
     function createShipment(
         uint256 _batchId,
@@ -74,30 +144,101 @@ contract Logistics is BaseLogisticsInterface, BaseEntityContract {
 
     function updateShipmentStatus(
         uint256 _shipmentId,
-        ShipmentStatus _status
+        uint256 _status
+    )
+        public
         // uint256 _weight
-    ) public onlyRegistrar {
+        onlyRegistrar
+    {
         require(_shipmentId <= shipmentId, "Invalid shipment ID");
-        shipmentOf[_shipmentId].status = _status;
 
-        if (_status == ShipmentStatus.Loaded) {
+        if (_status == 1) {
             shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
-        } else if (_status == ShipmentStatus.InTransit) {
+            shipmentOf[_shipmentId].status = ShipmentStatus.Loaded;
+        } else if (_status == 2) {
+            shipmentOf[_shipmentId].status = ShipmentStatus.InTransit;
             shipmentOf[_shipmentId].timeAtDispatched = block.timestamp;
-        } else if (_status == ShipmentStatus.Arrived) {
+        } else if (_status == 3) {
+            shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
             shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
-        } else if (_status == ShipmentStatus.UnLoaded) {
-            // require(_weight > 0, "wight of products should be greater than zero");
-            shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
-
-            CommonEntity _entity = CommonEntity(shipmentOf[_shipmentId].destination);
-            _entity.receivedFromLogistic(shipmentOf[_shipmentId].batchId,_shipmentId);
+        } else {
+            requestUpdateStaus(_shipmentId);
         }
     }
 
-    // function uploadDocument(uint256 _shipmentId, string memory _documentType, string memory _documentName, string memory _documentHash) public {
-    //     require(_shipmentId < nextShipmentId, "Invalid shipment ID");
-    //     uint256 documentId = nextDocumentId++;
-    //     shipmentDocuments[_shipmentId].push(Document(documentId, _documentType, _documentName, _documentHash));
+    function uintToString(uint number) public pure returns (string memory) {
+        if (number == 0) {
+            return "0";
+        }
+
+        uint length;
+        uint temp = number;
+
+        while (temp != 0) {
+            length++;
+            temp /= 10;
+        }
+
+        bytes memory buffer = new bytes(length);
+
+        while (number != 0) {
+            length -= 1;
+            buffer[length] = bytes1(uint8(48 + (number % 10)));
+            number /= 10;
+        }
+
+        return string(buffer);
+    }
+
+    function requestUpdateStaus(uint256 _shipmentId) public {
+        Chainlink.Request memory req = buildChainlinkRequest(
+            jobId,
+            address(this),
+            this.fulfillMultipleParameters.selector
+        );
+
+        req.add(
+            "urlID",
+            string(abi.encodePacked("https://api/ ", uintToString(_shipmentId)))
+        );
+
+        // {"BTC":0.06934}
+        req.add("pathID", "ID");
+        req.add(
+            "urlSTATUS",
+            string(abi.encodePacked("https://api/ ", uintToString(_shipmentId)))
+        );
+        req.add("pathStatus", "STATUS");
+        sendChainlinkRequest(req, fee); // MWR API.
+    }
+
+    function fulfillMultipleParameters(
+        bytes32 requestId,
+        uint256 shipmentIdResponse,
+        uint256 statusResponse
+    ) public recordChainlinkFulfillment(requestId) {
+        emit ShipmentStatusUpdated(shipmentIdResponse, statusResponse);
+        updateFinalStatus(shipmentIdResponse, statusResponse);
+    }
+
+    function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {
+        if (status == 4) {
+            shipmentOf[_shipmentId].status = ShipmentStatus.UnLoaded;
+            shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
+            CommonEntity _entity = CommonEntity(
+                shipmentOf[_shipmentId].destination
+            );
+            _entity.receivedFromLogistic(
+                shipmentOf[_shipmentId].batchId,
+                _shipmentId
+            );
+        }
+    }
+    // function withdrawLink() public onlyOwner {
+    //     LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+    //     require(
+    //         link.transfer(msg.sender, link.balanceOf(address(this))),
+    //         "Unable to transfer"
+    //     );
     // }
 }

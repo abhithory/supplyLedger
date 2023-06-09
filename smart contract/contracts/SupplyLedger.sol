@@ -198,7 +198,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
 
     function updateShipmentStatusInLogistics(
         uint256 _shipmentId,
-        ShipmentStatus _status
+        uint256 _status
     )
         public
         // uint256 _weight
@@ -206,6 +206,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
     {
         Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
         _logi.updateShipmentStatus(_shipmentId, _status);
+        // _logi.requestUpdateStaus(_shipmentId);
     }
 
     // food item reached at local colloctor

@@ -84,7 +84,7 @@ contract BaseEntityContract is BaseEntityInterface {
     string public id;
     string public name;
     string public location;
-    address public owner;
+    address public admin;
     address public registrar;
 
 
@@ -93,9 +93,9 @@ contract BaseEntityContract is BaseEntityInterface {
         _;
     }
 
-    constructor(string memory _id, address _owner, address _registrar) {
+    constructor(string memory _id, address _admin, address _registrar) {
         id = _id;
-        owner = _owner;
+        admin = _admin;
         registrar = _registrar;
     }
 }
