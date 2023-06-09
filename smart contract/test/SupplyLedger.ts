@@ -18,7 +18,7 @@ describe("SupplyLedger", function () {
 
     async function deployFarm(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         expect((await SupplyLedger.farmStatus(farm.address)).status).to.equal(false);
-        await SupplyLedger.registerFarm("FARM001", farm.address);
+        await SupplyLedger.registerFarm(, farm.address);
         expect((await SupplyLedger.farmStatus(farm.address)).status).to.equal(true);
     }
 
@@ -79,54 +79,6 @@ describe("SupplyLedger", function () {
             await deployLogistics(SupplyLedger, farm, localCollector, factory, retailStore, logistics);
         });
     });
-
-    const potatobatchQuality = {
-        "size": 0,
-        "shape": 1,
-        "color": 1,
-        "externalQuality": 1,
-        "internalQuality": 1,
-        "weight": 0,
-    }
-    const oqsFarm = 98;
-    const oqsDispatchFarm = 97;
-    const oqsReachLC = 95;
-    const oqsDispatchLC = 94;
-    const oqsReachRS = 92;
-    const oqsSold = 90;
-
-    const weightFarm = 500;
-    const weightDispatchFarm = 495;
-    const weightReachLC = 480;
-    const weightDispatchLC = 460;
-    const soldPacketWeight = 1;
-
-
-    const weightDispatchFactory = 420;
-
-
-    const weightReachRS = 445;
-
-
-    const chipsBatchDetails = {
-        chipsDetail: {
-            flavor: 1,
-            texture: 0
-        },
-        processDetails: {
-            cookingTemperature: 90,
-            ingredients: [0, 1, 2]
-        },
-        packagingDetails: {
-            packagingMaterial: 0,
-            packageSize: 1
-        },
-        totalPackets: 20,
-        totalWeight: 2,
-        productionDate: 0,
-        shelfLife: 6
-    }
-
 
 
 
