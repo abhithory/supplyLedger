@@ -14,9 +14,13 @@ async function deployContracts() {
     console.log("SupplyLedger Contract Deployed");
 
     const _farm = await supplyLedgerContract.deployFarm(farm.address);
+    console.log("farm contract deployed");
     const _lc = await supplyLedgerContract.deployLC(localCollector.address);
+    console.log("lc contract deployed");
     const _logistics = await supplyLedgerContract.deployLogistics(logistics.address);
+    console.log("logistics contract deployed");
     const _factory = await supplyLedgerContract.deployFactory(factory.address);
+    console.log("factory contract deployed");
     const _rs = await supplyLedgerContract.deployRs(retailStore.address);
 
     const addressObj = {

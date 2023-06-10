@@ -115,11 +115,11 @@ contract Logistics is
     uint256 public shipmentId;
     mapping(uint256 => Shipment) public shipmentOf;
 
-    // event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
+    event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
 
     constructor(
         address _owner
-    ) BaseEntityContract( _owner, msg.sender) ConfirmedOwner(msg.sender) {
+    ) BaseEntityContract(_owner, msg.sender) ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "53f9755920cd451a8fe46f5087468395";
@@ -149,15 +149,19 @@ contract Logistics is
     function updateShipmentStatus(
         uint256 _shipmentId,
         uint256 _status
-    )
-        public
-        onlyRegistrar
-    {
+    ) public onlyRegistrar {
         require(_shipmentId <= shipmentId, "Invalid shipment ID");
 
         if (_status == 1) {
             shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
             shipmentOf[_shipmentId].status = ShipmentStatus.InTransit;
+            CommonEntity _entity = CommonEntity(
+                shipmentOf[_shipmentId].destination
+            );
+            _entity.receivedFromLogistic(
+                shipmentOf[_shipmentId].batchId,
+                _shipmentId
+            );
         } else {
             requestUpdateStaus(_shipmentId);
         }
@@ -195,12 +199,22 @@ contract Logistics is
 
         req.add(
             "urlID",
-            string(abi.encodePacked("https://api-supplyledger.onrender.com/api/", uintToString(_shipmentId)))
+            string(
+                abi.encodePacked(
+                    "https://api-supplyledger.onrender.com/api/",
+                    uintToString(_shipmentId)
+                )
+            )
         );
         req.add("pathID", "ID");
         req.add(
             "urlSTATUS",
-            string(abi.encodePacked("https://api-supplyledger.onrender.com/api/", uintToString(_shipmentId)))
+            string(
+                abi.encodePacked(
+                    "https://api-supplyledger.onrender.com/api/",
+                    uintToString(_shipmentId)
+                )
+            )
         );
         req.add("pathStatus", "STATUS");
         sendChainlinkRequest(req, fee); // MWR API.
@@ -212,20 +226,22 @@ contract Logistics is
         uint256 statusResponse
     ) public recordChainlinkFulfillment(requestId) {
         // emit ShipmentStatusUpdated(shipmentIdResponse, statusResponse);
-        updateFinalStatus(shipmentIdResponse, statusResponse);
+        // updateFinalStatus(shipmentIdResponse, statusResponse);
+        shipmentOf[1].status = ShipmentStatus.Arrived;
+        shipmentOf[1].timeAtUnLoaded = block.timestamp;
     }
 
-    function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {
-        if (status == 4) {
-            shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
-            shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
-            CommonEntity _entity = CommonEntity(
-                shipmentOf[_shipmentId].destination
-            );
-            _entity.receivedFromLogistic(
-                shipmentOf[_shipmentId].batchId,
-                _shipmentId
-            );
-        }
-    }
+    // function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {
+    //     if (status == 2) {
+    //         shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
+    //         shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
+    //         CommonEntity _entity = CommonEntity(
+    //             shipmentOf[_shipmentId].destination
+    //         );
+    //         _entity.receivedFromLogistic(
+    //             shipmentOf[_shipmentId].batchId,
+    //             _shipmentId
+    //         );
+    //     }
+    // }
 }

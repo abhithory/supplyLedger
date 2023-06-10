@@ -29,14 +29,14 @@ let farmToLcLogisticsId, lcToFactoryLogisticsId, factoryToRsLogisticsId;
 
 
 const addressObj = {
-    supplyLedger: '0x26F820D3273EbA3Fb8179ef8FbeceA2fE3e8F050',
-    farm: '0x500EC8C101a2C52eA340802ABf4428D1C4BA2ea4',
-    lc: '0x5F1BDA5556c2Ab5D6A8bbC2025DEa0A9d06555e5',
-    factory: '0xAE14bBDabDFa81D10f2A66dA3444cBE5d653aBeF',
-    rs: '0xFD995aE06b56ba799d5A0EA845f4FCD16dCD8c64',
-    logistics: '0xc960195F5e16e7F13a6deE2D54463b703485286A'
+    supplyLedger: '0xe8Fa191Ce2AC94cC956a79324c94c4Be680228F1',
+    farm: '0xf099c6Fc56540dbE9B7F07c1C2267aa879b81163',
+    lc: '0x7AA240BB77C2740863eCa48454F6f99A1b088e89',
+    factory: '0x1d440382CB4F1D56Fe6F62804722e5824A9F7800',
+    rs: '0xb6d6e524BB26aD5dA356a56e9D63ABAecBf4Dad0',
+    logistics: '0x78F398ebb060ac3d69d835F5d76854dC35638813'
   }
-
+  const waitForSecs = ms => new Promise(res => setTimeout(res, ms));
 
 async function main() {
     const [registrar, farm, localCollector, factory, retailStore, logistics] = await ethers.getSigners();
@@ -84,6 +84,10 @@ async function main() {
         // console.log(`logistic id: ${_logisticId} status updated to: 3`);
         // await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 4);
         // console.log(`logistic id: ${_logisticId} status updated to: 4`);
+
+        await waitForSecs(2000)
+        const _shipmentData = await logisticsContract.shipmentOf(1);
+        console.log(_shipmentData);
     }
     await logisticSteps(farmToLcLogisticsId);
 

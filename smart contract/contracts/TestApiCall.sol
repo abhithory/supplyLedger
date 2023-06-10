@@ -22,8 +22,8 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
     uint256 private fee;
 
     // multiple params returned in a single oracle response
-    uint256 public btc;
-    uint256 public usd;
+    uint256 public id;
+    uint256 public status;
     uint256 public eur;
 
     event RequestMultipleFulfilled(
@@ -33,12 +33,22 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
         uint256 eur
     );
 
-
+    /**
+     * @notice Initialize the link token and target oracle
+     * @dev The oracle address must be an Operator contract for multiword response
+     *
+     *
+     * Sepolia Testnet details:
+     * Link Token: 0x326C977E6efc84E512bB9C30f76E30c160eD06FB
+     * Oracle: 0x40193c8518BB267228Fc409a613bDbD8eC5a97b3 (Chainlink DevRel)
+     * jobId: 53f9755920cd451a8fe46f5087468395
+     *
+     */
     constructor() ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "53f9755920cd451a8fe46f5087468395";
-        fee = 1 * 10 ** 17; // 0,1 * 10**18 (Varies by network and job)
+        fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
     }
 
     /**
@@ -52,19 +62,19 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
         );
         req.add(
             "urlBTC",
-            "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC"
+            "https://api-supplyledger.onrender.com/api/9"
         );
-        req.add("pathBTC", "BTC");
+        req.add("pathBTC", "ID");
         req.add(
             "urlUSD",
-            "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD"
+            "https://api-supplyledger.onrender.com/api/9"
         );
-        req.add("pathUSD", "USD");
+        req.add("pathUSD", "STATUS");
         req.add(
             "urlEUR",
-            "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=EUR"
+            "https://api-supplyledger.onrender.com/api/9"
         );
-        req.add("pathEUR", "EUR");
+        req.add("pathEUR", "WEIGHT");
         sendChainlinkRequest(req, fee); // MWR API.
     }
 
@@ -74,29 +84,15 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
      */
     function fulfillMultipleParameters(
         bytes32 requestId,
-        uint256 btcResponse,
-        uint256 usdResponse,
-        uint256 eurResponse
+        uint256 idResponse,
+        uint256 statusResponse,
+        uint256 weightResponse
     ) public recordChainlinkFulfillment(requestId) {
-        emit RequestMultipleFulfilled(
-            requestId,
-            btcResponse,
-            usdResponse,
-            eurResponse
-        );
-        btc = btcResponse;
-        usd = usdResponse;
-        eur = eurResponse;
+
+        id = idResponse;
+        status = statusResponse;
+        eur = weightResponse;
     }
 
-    /**
-     * Allow withdraw of Link tokens from the contract
-     */
-    function withdrawLink() public onlyOwner {
-        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        require(
-            link.transfer(msg.sender, link.balanceOf(address(this))),
-            "Unable to transfer"
-        );
-    }
+
 }
