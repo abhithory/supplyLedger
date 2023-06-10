@@ -19,6 +19,7 @@ async function deployContracts() {
     console.log("lc contract deployed");
     const _logistics = await supplyLedgerContract.deployLogistics(logistics.address);
     console.log("logistics contract deployed");
+    await fundLinkToLogistics(_logistics.contractAddr,registrar)
     const _factory = await supplyLedgerContract.deployFactory(factory.address);
     console.log("factory contract deployed");
     const _rs = await supplyLedgerContract.deployRs(retailStore.address);
@@ -34,5 +35,41 @@ async function deployContracts() {
 
     console.log(addressObj);
 }
+
+async function fundLinkToLogistics(losgisticAddr,registrar) {    
+      const contractABI = [
+        {
+          constant: false,
+          inputs: [
+            {
+              name: "_to",
+              type: "address",
+            },
+            {
+              name: "_value",
+              type: "uint256",
+            },
+          ],
+          name: "transfer",
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+            },
+          ],
+          payable: false,
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ];
+      const contract = new ethers.Contract("0x326C977E6efc84E512bB9C30f76E30c160eD06FB", contractABI, registrar);
+    
+      const amount = ethers.utils.parseUnits("1", "18");
+    
+      const tx = await contract.transfer(losgisticAddr, amount);
+      await tx.wait();
+    
+      console.log("1 link Transfered to logistics!");
+  }
 
 deployContracts();

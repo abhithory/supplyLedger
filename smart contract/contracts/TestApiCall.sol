@@ -24,7 +24,7 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
     // multiple params returned in a single oracle response
     uint256 public id;
     uint256 public status;
-    uint256 public eur;
+    uint256 public weight;
 
     event RequestMultipleFulfilled(
         bytes32 indexed requestId,
@@ -54,7 +54,31 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
     /**
      * @notice Request mutiple parameters from the oracle in a single transaction
      */
-    function requestMultipleParameters() public {
+
+    function uintToString(uint number) public pure returns (string memory) {
+        if (number == 0) {
+            return "0";
+        }
+        uint length;
+        uint temp = number;
+
+        while (temp != 0) {
+            length++;
+            temp /= 10;
+        }
+
+        bytes memory buffer = new bytes(length);
+
+        while (number != 0) {
+            length -= 1;
+            buffer[length] = bytes1(uint8(48 + (number % 10)));
+            number /= 10;
+        }
+
+        return string(buffer);
+    }
+
+    function requestMultipleParameters(uint256 _shipmentId) public {
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
             address(this),
@@ -62,17 +86,32 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
         );
         req.add(
             "urlBTC",
-            "https://api-supplyledger.onrender.com/api/9"
+            string(
+                abi.encodePacked(
+                    "https://api-supplyledger.onrender.com/api/",
+                    uintToString(_shipmentId)
+                )
+            )
         );
         req.add("pathBTC", "ID");
         req.add(
             "urlUSD",
-            "https://api-supplyledger.onrender.com/api/9"
+            string(
+                abi.encodePacked(
+                    "https://api-supplyledger.onrender.com/api/",
+                    uintToString(_shipmentId)
+                )
+            )
         );
         req.add("pathUSD", "STATUS");
         req.add(
             "urlEUR",
-            "https://api-supplyledger.onrender.com/api/9"
+            string(
+                abi.encodePacked(
+                    "https://api-supplyledger.onrender.com/api/",
+                    uintToString(_shipmentId)
+                )
+            )
         );
         req.add("pathEUR", "WEIGHT");
         sendChainlinkRequest(req, fee); // MWR API.
@@ -88,11 +127,8 @@ contract TestApiCall is ChainlinkClient, ConfirmedOwner {
         uint256 statusResponse,
         uint256 weightResponse
     ) public recordChainlinkFulfillment(requestId) {
-
-        id = idResponse;
-        status = statusResponse;
-        eur = weightResponse;
+        id = idResponse/100000;
+        status = statusResponse/100000;
+        weight = weightResponse/100000;
     }
-
-
 }

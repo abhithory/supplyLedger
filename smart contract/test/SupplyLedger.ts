@@ -3,55 +3,28 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
+const { potatobatchQuality, chipsBatchDetails, weight, oqs } = require('../src/constantData.js');
+
+
 
 
 describe("SupplyLedger", function () {
 
-    const potatobatchQuality = {
-        "size": 0,
-        "shape": 1,
-        "color": 1,
-        "externalQuality": 1,
-        "internalQuality": 1,
-        "weight": 0,
-    }
-    
-    
-    const chipsBatchDetails = {
-        chipsDetail: {
-            flavor: 1,
-            texture: 0
-        },
-        processDetails: {
-            cookingTemperature: 90,
-            ingredients: [0, 1, 2]
-        },
-        packagingDetails: {
-            packagingMaterial: 0,
-            packageSize: 1
-        },
-        totalPackets: 20,
-        totalWeight: 2,
-        productionDate: 0,
-        shelfLife: 6
-    }
-
-    
     const oqsFarm = 98;
-const oqsDispatchFarm = 97;
-const oqsReachLC = 95;
-const oqsDispatchLC = 94;
-const oqsReachRS = 92;
-const oqsSold = 90;
+    const oqsDispatchFarm = 97;
+    const oqsReachLC = 95;
+    const oqsDispatchLC = 94;
+    const oqsReachRS = 92;
+    const oqsSold = 90;
 
-const weightFarm = 500;
-const weightDispatchFarm = 495;
-const weightReachLC = 480;
-const weightDispatchLC = 460;
-const soldPacketWeight = 1;
+    const weightFarm = 500;
+    const weightDispatchFarm = 495;
+    const weightReachLC = 480;
+    const weightDispatchLC = 460;
+    const soldPacketWeight = 1;
 
-const weightDispatchFactory = 420;
-const weightReachRS = 445;
+    const weightDispatchFactory = 420;
+    const weightReachRS = 445;
 
 
 
@@ -67,31 +40,31 @@ const weightReachRS = 445;
 
     async function deployFarm(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         expect((await SupplyLedger.farmStatus(farm.address)).status).to.equal(false);
-        await SupplyLedger.registerFarm( farm.address);
+        await SupplyLedger.registerFarm(farm.address);
         expect((await SupplyLedger.farmStatus(farm.address)).status).to.equal(true);
     }
 
     async function deployLC(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         expect((await SupplyLedger.lCStatus(localCollector.address)).status).to.equal(false);
-        await SupplyLedger.registerLC( localCollector.address);
+        await SupplyLedger.registerLC(localCollector.address);
         expect((await SupplyLedger.lCStatus(localCollector.address)).status).to.equal(true);
     }
 
     async function deployFactory(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         expect((await SupplyLedger.factoryStatus(factory.address)).status).to.equal(false);
-        await SupplyLedger.registerFactory( factory.address);
+        await SupplyLedger.registerFactory(factory.address);
         expect((await SupplyLedger.factoryStatus(factory.address)).status).to.equal(true);
     }
 
     async function deployRS(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         expect((await SupplyLedger.rSStatus(retailStore.address)).status).to.equal(false);
-        await SupplyLedger.registerRS( retailStore.address);
+        await SupplyLedger.registerRS(retailStore.address);
         expect((await SupplyLedger.rSStatus(retailStore.address)).status).to.equal(true);
     }
 
     async function deployLogistics(SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         expect((await SupplyLedger.logisticStatus(logistics.address)).status).to.equal(false);
-        await SupplyLedger.registerLogistics( logistics.address);
+        await SupplyLedger.registerLogistics(logistics.address);
         expect((await SupplyLedger.logisticStatus(logistics.address)).status).to.equal(true);
     }
 
@@ -564,9 +537,9 @@ const weightReachRS = 445;
         // const _fullData = await SupplyLedger.getSupplyDetailOfChipsPacket(chipsPacketId);
 
         console.log(_fullData);
-        
+
     }
-        async function getDetailsOfProduct(chipsPacketId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
+    async function getDetailsOfProduct(chipsPacketId: number, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
         const chipsBatchRelationId = Number(await SupplyLedger.chipsPacketBatchRelationIdOf(chipsPacketId));
         // console.log(chipsBatchRelationId);
 
@@ -576,10 +549,10 @@ const weightReachRS = 445;
         const potatoBatchRelationDetails = await SupplyLedger.potatBatchRelationOf(potatoBatchRelationId)
 
 
-        const _farmStatus = await SupplyLedger.farmStatus(potatoBatchRelationDetails.farm);        
+        const _farmStatus = await SupplyLedger.farmStatus(potatoBatchRelationDetails.farm);
         const FarmContract = await ethers.getContractFactory("Farm");
         const _farmContract = FarmContract.attach(_farmStatus.contractAddr);
-        
+
         const lcStatus = await SupplyLedger.lCStatus(potatoBatchRelationDetails.localCollector);
         const localCollectorContract = await ethers.getContractFactory("LocalCollector");
         const _localCollectorContract = localCollectorContract.attach(lcStatus.contractAddr);
@@ -597,7 +570,7 @@ const weightReachRS = 445;
         const chipsBatchArrivedAtRsDetails = await _RetailStoreContract.ArrivedBatchDetails(chipsBatchRelationId);
         // console.log(chipsPacketSoldDetails);
         // console.log(chipsBatchArrivedAtRsDetails);
-        
+
         const chipsManufacturingDetails = await _factoryContract.chipsBatchOf(chipsBatchRelationId);
         const chipsBatchDispatchedFromFactoryDetails = await _factoryContract.DispatchedBatchDetails(chipsBatchRelationId);
         const potatoBatchArrivedAtFactoryDetails = await _factoryContract.ArrivedBatchDetails(potatoBatchRelationId);
@@ -612,21 +585,21 @@ const weightReachRS = 445;
         // console.log(dispatchedBatchAtLcDetails);
 
 
-        const potatoDetailsAtFarm = await _farmContract.farmPotatoBatchDetailOf(potatoBatchRelationId);   
+        const potatoDetailsAtFarm = await _farmContract.farmPotatoBatchDetailOf(potatoBatchRelationId);
         // console.log(potatoDetailsAtFarm);
-        
+
 
         const farmToLcLogisticContractAddr = potatoDetailsAtFarm.logisticContractAddr;
-        const farmToLcLogisticId = Number(potatoDetailsAtFarm.logisticId);     
+        const farmToLcLogisticId = Number(potatoDetailsAtFarm.logisticId);
         const lcToFactoryLogisticContractAddr = dispatchedBatchAtLcDetails.logisticContractAddr;
-        const lcToFactoryLogisticId = Number(dispatchedBatchAtLcDetails.logisticId);     
+        const lcToFactoryLogisticId = Number(dispatchedBatchAtLcDetails.logisticId);
         const factoryToRsLogisticContractAddr = chipsBatchDispatchedFromFactoryDetails.logisticContractAddr;
-        const factoryToRsLogisticId = Number(chipsBatchDispatchedFromFactoryDetails.logisticId); 
-        
+        const factoryToRsLogisticId = Number(chipsBatchDispatchedFromFactoryDetails.logisticId);
+
         // console.log(farmToLcLogisticId,lcToFactoryLogisticId,factoryToRsLogisticId);
         // console.log(farmToLcLogisticContractAddr,lcToFactoryLogisticContractAddr,factoryToRsLogisticContractAddr);
-        
-        
+
+
         const logisticsContract = await ethers.getContractFactory("Logistics");
         const farmToLcLogisticContract = logisticsContract.attach(farmToLcLogisticContractAddr);
         const lcToFactoryLogisticContract = logisticsContract.attach(lcToFactoryLogisticContractAddr);
@@ -640,7 +613,7 @@ const weightReachRS = 445;
         console.log(farmToLcLogisticDetails);
         console.log(lcToFactoryLogisticDetails);
         console.log(factoryToRsLogisticDetails);
-        
+
 
     }
 
@@ -743,7 +716,7 @@ const weightReachRS = 445;
 
 
     describe("Customer getting details", function () {
-        return 
+        return
         it("Should get all details of product", async function () {
             const { SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(SupplyLedger, farm, localCollector, factory, retailStore, logistics);

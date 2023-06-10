@@ -1,3 +1,13 @@
+const addressObj = {
+    supplyLedger: '0xB2459eCA29d6d42947B896D017436b728c6f19A8',
+    farm: '0xCe58005131AdF57Ab726f675CcB25C1eEb163C5c',
+    lc: '0xaf39A3bFe538099494669f47c386df088083C7B5',
+    factory: '0x1a6a16DE6F2956Bf089c728845f66257da2Ed679',
+    rs: '0xf548A4C7C6E97af82eEBa567C826c8af796B4841',
+    logistics: '0x51658C2733D25f1f732bb7D880b769A4D439BeBa'
+  }
+
+
 class SupplyLedgerContract {
     constructor(_registrar) {
         this.registrarAddr = _registrar;
@@ -55,6 +65,10 @@ class SupplyLedgerContract {
 
     async getChipsPacketBatchRelationId() {
         return Number(await this.contract.chipsPacketBatchRelationId());
+    }
+
+    async getChipsPacketId() {
+        return Number(await this.contract.chipsPacketId());
     }
 
     async addPotatoBatchAtFarm(farmSigner, potatobatchQuality, oqsFarm, weightFarm) {
@@ -191,4 +205,4 @@ class LogisticsContract {
     }
 }
 
-module.exports = { SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }
+module.exports = {addressObj, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }

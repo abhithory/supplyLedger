@@ -27,11 +27,11 @@ interface BaseLogisticsInterface {
         ShipmentStatus status;
         address origin;
         address destination;
-        uint256 timeAtStart;
+        // uint256 timeAtStart;
         uint256 timeAtLoaded;
         uint256 timeAtDispatched;
+        uint256 weightAtArrived; 
         uint256 timeAtArrived;
-        uint256 timeAtUnLoaded;
     }
 
     // struct Document {
@@ -140,7 +140,6 @@ contract Logistics is
             block.timestamp,
             0,
             0,
-            0,
             0
         );
         return shipmentId;
@@ -153,7 +152,7 @@ contract Logistics is
         require(_shipmentId <= shipmentId, "Invalid shipment ID");
 
         if (_status == 1) {
-            shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
+            shipmentOf[_shipmentId].timeAtDispatched = block.timestamp;
             shipmentOf[_shipmentId].status = ShipmentStatus.InTransit;
             CommonEntity _entity = CommonEntity(
                 shipmentOf[_shipmentId].destination
@@ -196,9 +195,8 @@ contract Logistics is
             address(this),
             this.fulfillMultipleParameters.selector
         );
-
         req.add(
-            "urlID",
+            "urlBTC",
             string(
                 abi.encodePacked(
                     "https://api-supplyledger.onrender.com/api/",
@@ -206,9 +204,9 @@ contract Logistics is
                 )
             )
         );
-        req.add("pathID", "ID");
+        req.add("pathBTC", "ID");
         req.add(
-            "urlSTATUS",
+            "urlUSD",
             string(
                 abi.encodePacked(
                     "https://api-supplyledger.onrender.com/api/",
@@ -216,19 +214,33 @@ contract Logistics is
                 )
             )
         );
-        req.add("pathStatus", "STATUS");
+        req.add("pathUSD", "STATUS");
+        req.add(
+            "urlEUR",
+            string(
+                abi.encodePacked(
+                    "https://api-supplyledger.onrender.com/api/",
+                    uintToString(_shipmentId)
+                )
+            )
+        );
+        req.add("pathEUR", "WEIGHT");
         sendChainlinkRequest(req, fee); // MWR API.
     }
 
+    /**
+     * @notice Fulfillment function for multiple parameters in a single request
+     * @dev This is called by the oracle. recordChainlinkFulfillment must be used.
+     */
     function fulfillMultipleParameters(
         bytes32 requestId,
-        uint256 shipmentIdResponse,
-        uint256 statusResponse
+        uint256 idResponse,
+        uint256 statusResponse,
+        uint256 weightResponse
     ) public recordChainlinkFulfillment(requestId) {
-        // emit ShipmentStatusUpdated(shipmentIdResponse, statusResponse);
-        // updateFinalStatus(shipmentIdResponse, statusResponse);
-        shipmentOf[1].status = ShipmentStatus.Arrived;
-        shipmentOf[1].timeAtUnLoaded = block.timestamp;
+        shipmentOf[idResponse/100000].status = ShipmentStatus(statusResponse/100000);
+        shipmentOf[idResponse/100000].timeAtArrived = block.timestamp;
+        shipmentOf[idResponse/100000].weightAtArrived = weightResponse/100000;
     }
 
     // function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {

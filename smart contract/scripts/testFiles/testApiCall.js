@@ -69,12 +69,11 @@ async function callFunctions(testApiContractAddr) {
   async function getVol() {
     const btc = await testApiCall.id();
     const status = await testApiCall.status();
-    const eur = await testApiCall.eur();
-    console.log(btc, status, eur)
+    const weight = await testApiCall.weight();
+    console.log(btc, status, weight)
   }
 
   async function getVolLoop() {
-    const start = new Date();
     while (true) {
       await requestVolumeData();
       await waitForSecs(10000)
@@ -85,7 +84,7 @@ async function callFunctions(testApiContractAddr) {
   async function requestVolumeData() {
     // await testApiCall.requestVolumeData();
     // const _v = await testApiCall.requestVolumeData({  gasLimit: 1000000  });
-    const _v = await testApiCall.requestMultipleParameters();
+    const _v = await testApiCall.requestMultipleParameters(13);
     console.log("_vol");
     const _vol = await _v.wait();
     console.log("_vol");
