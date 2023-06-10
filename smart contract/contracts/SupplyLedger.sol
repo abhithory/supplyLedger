@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
-// console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
 
 import "./Farm.sol";
 import "./LocalCollector.sol";
@@ -77,36 +75,36 @@ contract RegistrarSupplyLedger is
     }
 
     // Registring entities
-    function registerFarm(string memory _id, address _owner) public {
+    function registerFarm( address _owner) public {
         require(!farmStatus[msg.sender].status, "Farm already registred");
-        Farm _farm = new Farm(_id, _owner);
+        Farm _farm = new Farm(_owner);
         farmStatus[_owner] = Entity(address(_farm), true);
     }
 
-    function registerLC(string memory _id, address _owner) public {
+    function registerLC( address _owner) public {
         require(!lCStatus[msg.sender].status, "Farm already registred");
-        LocalCollector _LocalCollector = new LocalCollector(_id, _owner);
+        LocalCollector _LocalCollector = new LocalCollector(_owner);
         lCStatus[_owner] = Entity(address(_LocalCollector), true);
     }
 
-    function registerRS(string memory _id, address _owner) public {
+    function registerRS( address _owner) public {
         require(!rSStatus[msg.sender].status, "Farm already registred");
-        RetailStore _RetailStore = new RetailStore(_id, _owner);
+        RetailStore _RetailStore = new RetailStore(_owner);
         rSStatus[_owner] = Entity(address(_RetailStore), true);
     }
 
-    function registerFactory(string memory _id, address _owner) public {
+    function registerFactory( address _owner) public {
         require(!factoryStatus[msg.sender].status, "Factory already registred");
-        Factory _Factory = new Factory(_id, _owner);
+        Factory _Factory = new Factory(_owner);
         factoryStatus[_owner] = Entity(address(_Factory), true);
     }
 
-    function registerLogistics(string memory _id, address _owner) public {
+    function registerLogistics( address _owner) public {
         require(
             !logisticStatus[msg.sender].status,
             "Logistics already registred"
         );
-        Logistics _Logistics = new Logistics(_id, _owner);
+        Logistics _Logistics = new Logistics(_owner);
         logisticStatus[_owner] = Entity(address(_Logistics), true);
     }
 }
@@ -134,12 +132,8 @@ contract SupplyLedger is RegistrarSupplyLedger {
     uint256 public chipsPacketId;
     mapping(uint256 => uint256) public chipsPacketBatchRelationIdOf;
 
-    // Events
-    // event foodItemAdded(address indexed farmAddress,string quality);
-
     constructor(address admin) RegistrarSupplyLedger(admin) {}
 
-    // collect food item data at farm (date, quality etc..) and store in smart contract
     function addPotatoBatchAtFarm(
         BatchQuality memory _bq,
         uint256 _oqc,
@@ -148,7 +142,6 @@ contract SupplyLedger is RegistrarSupplyLedger {
         potatBatchRelationOf[potatoBatchRelationId] = PotatoBatchRelation(
             potatoBatchRelationId,
             "Potato Batch 001",
-            // farmStatus[msg.sender].contractAddr,
             msg.sender,
             address(0),
             address(0)
@@ -261,10 +254,10 @@ contract SupplyLedger is RegistrarSupplyLedger {
         uint256 _oqs,
         uint256 _weight
     ) public onlyFactory {
-        require(
-            potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
-            "Factory is not correct"
-        );
+        // require(
+        //     potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
+        //     "Factory is not correct"
+        // );
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
         _Factory.potatoBatchStoredAtFactory(
@@ -278,10 +271,10 @@ contract SupplyLedger is RegistrarSupplyLedger {
         uint256 _potatoBatchRelationId,
         ChipsBatch memory _details
     ) public onlyFactory {
-        require(
-            potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
-            "Factory is not correct"
-        );
+        // require(
+        //     potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
+        //     "Factory is not correct"
+        // );
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
         _Factory.chipsPrepared(chipsPacketBatchRelationId, _details);
@@ -297,11 +290,11 @@ contract SupplyLedger is RegistrarSupplyLedger {
         uint256 _ww,
         address _logisticsAddr
     ) public onlyFactory {
-        require(
-            potatBatchRelationOf[_chipsPacketBatchRelationId].factory ==
-                msg.sender,
-            "Factory is not correct"
-        );
+        // require(
+        //     potatBatchRelationOf[_chipsPacketBatchRelationId].factory ==
+        //         msg.sender,
+        //     "Factory is not correct"
+        // );
 
         chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId]
             .retailStore = _rs;
@@ -329,11 +322,11 @@ contract SupplyLedger is RegistrarSupplyLedger {
         uint256 _batchDetailsId,
         uint256 _weight
     ) public onlyRS {
-        require(
-            chipsPacketBatchRelationsOf[_batchDetailsId].retailStore ==
-                msg.sender,
-            "Retail Store is not correct"
-        );
+        // require(
+        //     chipsPacketBatchRelationsOf[_batchDetailsId].retailStore ==
+        //         msg.sender,
+        //     "Retail Store is not correct"
+        // );
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
@@ -346,11 +339,11 @@ contract SupplyLedger is RegistrarSupplyLedger {
         uint256 _chipsPacketBatchRelationId,
         uint256 _packetWeight
     ) public onlyRS {
-        require(
-            chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId]
-                .retailStore == msg.sender,
-            "Retail Store is not correct"
-        );
+        // require(
+        //     chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId]
+        //         .retailStore == msg.sender,
+        //     "Retail Store is not correct"
+        // );
 
         RetailStore _retailStore = RetailStore(
             rSStatus[msg.sender].contractAddr
@@ -367,64 +360,4 @@ contract SupplyLedger is RegistrarSupplyLedger {
         chipsPacketId++;
     }
 
-    // function getChipsPacketDetailFromRs(
-    //     uint256 _chipsPacketId
-    // )
-    //     public
-    //     view
-    //     returns (
-    //         ChipsPacketDetail memory soldChipsPacketDetail,
-    //         ChipsBatchDetail memory arrivedChipsPacketBatchAtRsDetail
-    //     )
-    // {
-    //     uint256 _chipsPacketBatchRelationId = chipsPacketBatchRelationIdOf[
-    //         _chipsPacketId
-    //     ];
-    //     ChipsPacketBatchRelations
-    //         memory _chipsPacketBatchRelations = chipsPacketBatchRelationsOf[
-    //             _chipsPacketBatchRelationId
-    //         ];
-    //     RetailStore _retailStore = RetailStore(
-    //         rSStatus[_chipsPacketBatchRelations.retailStore].contractAddr
-    //     );
-    //     soldChipsPacketDetail = _retailStore.getSoldChips(_chipsPacketId);
-    //     arrivedChipsPacketBatchAtRsDetail = _retailStore.getArrivedChipsBatch(
-    //         _chipsPacketBatchRelationId
-    //     );
-    // }
-
-    // function getChipsPacketDetailFromFactory(
-    //     uint256 _chipsPacketId
-    // )
-    //     public
-    //     view
-    //     returns (
-    //         ChipsBatch memory chipsBatchManufacturingDetails
-    //         // ChipsBatchDetail memory chipsBatchDispatchedDetailsToRs
-    //     )
-    // {
-    //     PotatoBatchRelation memory _potatoBatchRelations = potatBatchRelationOf[
-    //         chipsPacketBatchRelationsOf[chipsPacketBatchRelationIdOf[_chipsPacketId]]
-    //             .potatosRelativeId
-    //     ];
-    //     Factory _factory = Factory(
-    //         factoryStatus[_potatoBatchRelations.factory].contractAddr
-    //     );
-
-    //     // Farm _farm = Farm(farmStatus[_potatoBatchRelations.farm].contractAddr);
-    //     // LocalCollector _localCollector = LocalCollector(lCStatus[_potatoBatchRelations.localCollector].contractAddr);
-
-    //     // Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
-
-    //     chipsBatchManufacturingDetails = _factory.getChipsBatchFactoryProccessingDetails(chipsPacketBatchRelationIdOf[_chipsPacketId]);
-    //     // chipsBatchDispatchedDetailsToRs = _factory.getChipsBatchDispatchDetail(_chipsPacketBatchRelationId);
-
-    //     // chipsBatchFactoryProccessingDetails = _factory.getChipsBatchFactoryProccessingDetails(_chipsPacketBatchRelationId);
-    //     // chipsBatchFactoryProccessingDetails = _factory.getChipsBatchDispatchDetail(_chipsPacketBatchRelationId);
-    //     // chipsBatchFactoryProccessingDetails = _factory.getChipsBatchDispatchDetail(getPotatoBatchArrivedDetail);
-
-    //     // address _farmAddr = potatBatchRelationOf[_potatoBatchRelationId].farm;
-
-    //     // Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
-    // }
 }

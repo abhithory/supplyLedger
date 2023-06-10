@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
-
 import "./BaseEntityContract.sol";
 
 contract RetailStore is BaseEntityContract {
@@ -10,9 +8,8 @@ contract RetailStore is BaseEntityContract {
     mapping(uint256 => ChipsPacketDetail) public soldChipsPacket;
 
     constructor(
-        string memory _id,
         address _owner
-    ) BaseEntityContract(_id, _owner, msg.sender) {}
+    ) BaseEntityContract(_owner, msg.sender) {}
 
     function receivedFromLogistic(
         uint256 _batchId,

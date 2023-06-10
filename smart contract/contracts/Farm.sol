@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// import "hardhat/console.sol";
 import "./BaseEntityContract.sol";
 
 contract Farm is BaseEntityContract {
 
     mapping(uint256 => FarmPotatoBatchDetail) public farmPotatoBatchDetailOf;
 
-    constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender)  {}
+    constructor(address _owner) BaseEntityContract(_owner, msg.sender)  {}
 
     function potatoBatchCollectedAtFarm(
         uint256 _id,

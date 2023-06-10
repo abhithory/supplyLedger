@@ -15,16 +15,14 @@ const config: HardhatUserConfig = {
       }
     }
   },
-  defaultNetwork: "mumbai",
-
-
+  // defaultNetwork: "mumbai",
   networks: {
     ganache: {
       url: "HTTP://127.0.0.1:7545",
       accounts: [
-        "3082f5210e9e4588b803f074a2b50e183f03b1fe9bf8bb1929ea945aa60f4a20", "33586c197c3d98428c6f08928f1a43d23e670fcaf06c4df7b24f8d379069433c", "ecbca0a65b3caebdaebefa529f5b4fc564e61ef314933a06841cb0f9481bdb73", "9bde292c185c437e781dc3e2a3e9a203351498d4d04b364828be8aa0b5c7ce4e",
-        "d029eefc2c90c32724579dc361c00d02412295858a83de8d53b483c87286ba6c",
-        "5599c57943fcdd303f0936556bb4bf0c4c5b9ddefebd6fd2e713da561dd36baf"
+        "299d2cce099c88788b2785a2eec3b826c338ada82fd5bf03fb360deed8d5130d", "e9d7e8cf58b23c26fe7a380fcbd565190fe8308183855871c3909d0e9653c22c", "385897e5a0b57545089200a23e4e87230a15a2edf5ad291d527fe65774f75a46", "144b10757d405cc7076b9b8cf01aedca000c1411e31515109b373a92ec9575f6",
+        "72c83b154b1a6afb913714eef01ab5526f13e1df05ed0d8e849d8818b49e92b9",
+        "f856a6e9c99091102e9be9b6e16d2e9a85e28fa6714ccc1b7917bf2a216b4fd6"
       ]
     },
     mumbai: {

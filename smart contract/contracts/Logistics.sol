@@ -11,15 +11,15 @@ contract CommonEntity {
 
 interface BaseLogisticsInterface {
     enum ShipmentStatus {
-        NotLoaded,
+        // NotLoaded,
         Loaded,
         InTransit,
         // Dispatched,
         // Arrived25,
         // Arrived50,
         // Arrived75,
-        Arrived,
-        UnLoaded
+        Arrived
+        // UnLoaded
     }
 
     struct Shipment {
@@ -44,11 +44,10 @@ interface BaseLogisticsInterface {
 
 // with external apis
 // contract Logistics is BaseLogisticsInterface, BaseEntityContract {
-
 //     uint256 public shipmentId;
 //     mapping(uint256 => Shipment) public shipmentOf;
 
-//     constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender) {}
+//     constructor(address _owner) BaseEntityContract(_owner, msg.sender) {}
 
 //     function createShipment(
 //         uint256 _batchId,
@@ -58,7 +57,7 @@ interface BaseLogisticsInterface {
 //         shipmentId++;
 //         shipmentOf[shipmentId] = Shipment(
 //             _batchId,
-//             ShipmentStatus.NotLoaded,
+//             ShipmentStatus.Loaded,
 //             _origin,
 //             _destination,
 //             block.timestamp,
@@ -72,22 +71,28 @@ interface BaseLogisticsInterface {
 
 //     function updateShipmentStatus(
 //         uint256 _shipmentId,
-//         ShipmentStatus _status
+//         uint256 _status
+//     )
+//         public
 //         // uint256 _weight
-//     ) public onlyRegistrar {
+//         onlyRegistrar
+//     {
 //         require(_shipmentId <= shipmentId, "Invalid shipment ID");
-//         shipmentOf[_shipmentId].status = _status;
+//         // shipmentOf[_shipmentId].status = _status;
 
-//         if (_status == ShipmentStatus.Loaded) {
+//         if (_status == 1) {
 //             shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
-//         } else if (_status == ShipmentStatus.InTransit) {
-//             shipmentOf[_shipmentId].timeAtDispatched = block.timestamp;
-//         } else if (_status == ShipmentStatus.Arrived) {
-//             shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
-//         } else if (_status == ShipmentStatus.UnLoaded) {
+//             shipmentOf[_shipmentId].status = ShipmentStatus.InTransit;
+//         } else {
+//             shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
 //             shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
-//             CommonEntity _entity = CommonEntity(shipmentOf[_shipmentId].destination);
-//             _entity.receivedFromLogistic(shipmentOf[_shipmentId].batchId,_shipmentId);
+//             CommonEntity _entity = CommonEntity(
+//                 shipmentOf[_shipmentId].destination
+//             );
+//             _entity.receivedFromLogistic(
+//                 shipmentOf[_shipmentId].batchId,
+//                 _shipmentId
+//             );
 //         }
 //     }
 // }
@@ -110,12 +115,11 @@ contract Logistics is
     uint256 public shipmentId;
     mapping(uint256 => Shipment) public shipmentOf;
 
-    event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
+    // event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
 
     constructor(
-        string memory _id,
         address _owner
-    ) BaseEntityContract(_id, _owner, msg.sender) ConfirmedOwner(msg.sender) {
+    ) BaseEntityContract( _owner, msg.sender) ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "53f9755920cd451a8fe46f5087468395";
@@ -130,7 +134,7 @@ contract Logistics is
         shipmentId++;
         shipmentOf[shipmentId] = Shipment(
             _batchId,
-            ShipmentStatus.NotLoaded,
+            ShipmentStatus.Loaded,
             _origin,
             _destination,
             block.timestamp,
@@ -147,20 +151,13 @@ contract Logistics is
         uint256 _status
     )
         public
-        // uint256 _weight
         onlyRegistrar
     {
         require(_shipmentId <= shipmentId, "Invalid shipment ID");
 
         if (_status == 1) {
             shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
-            shipmentOf[_shipmentId].status = ShipmentStatus.Loaded;
-        } else if (_status == 2) {
             shipmentOf[_shipmentId].status = ShipmentStatus.InTransit;
-            shipmentOf[_shipmentId].timeAtDispatched = block.timestamp;
-        } else if (_status == 3) {
-            shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
-            shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
         } else {
             requestUpdateStaus(_shipmentId);
         }
@@ -170,7 +167,6 @@ contract Logistics is
         if (number == 0) {
             return "0";
         }
-
         uint length;
         uint temp = number;
 
@@ -201,8 +197,6 @@ contract Logistics is
             "urlID",
             string(abi.encodePacked("https://api-supplyledger.onrender.com/api/", uintToString(_shipmentId)))
         );
-
-        // {"BTC":0.06934}
         req.add("pathID", "ID");
         req.add(
             "urlSTATUS",
@@ -217,13 +211,13 @@ contract Logistics is
         uint256 shipmentIdResponse,
         uint256 statusResponse
     ) public recordChainlinkFulfillment(requestId) {
-        emit ShipmentStatusUpdated(shipmentIdResponse, statusResponse);
+        // emit ShipmentStatusUpdated(shipmentIdResponse, statusResponse);
         updateFinalStatus(shipmentIdResponse, statusResponse);
     }
 
     function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {
         if (status == 4) {
-            shipmentOf[_shipmentId].status = ShipmentStatus.UnLoaded;
+            shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
             shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
             CommonEntity _entity = CommonEntity(
                 shipmentOf[_shipmentId].destination
@@ -234,11 +228,4 @@ contract Logistics is
             );
         }
     }
-    // function withdrawLink() public onlyOwner {
-    //     LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-    //     require(
-    //         link.transfer(msg.sender, link.balanceOf(address(this))),
-    //         "Unable to transfer"
-    //     );
-    // }
 }

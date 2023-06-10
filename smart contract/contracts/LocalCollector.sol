@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-// import "hardhat/console.sol";
-
 import "./BaseEntityContract.sol";
 
 contract LocalCollector is BaseEntityContract {
@@ -11,7 +9,7 @@ contract LocalCollector is BaseEntityContract {
     mapping(uint256 => PotatoBatchDetail) public DispatchedBatchDetails;
 
 
-    constructor(string memory _id, address _owner) BaseEntityContract(_id,_owner, msg.sender) {}
+    constructor(address _owner) BaseEntityContract(_owner, msg.sender) {}
 
     function potatoBatchStoredAtLC(
         uint256 _batchDetailsId,

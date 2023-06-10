@@ -14,7 +14,7 @@ app.get("/api/:shipmentid", (req, res) => {
     const id = Number(req.params.shipmentid)
     res.status(200).json({
         ID: id,
-        STATUS:4
+        STATUS:2
     })
 })
 

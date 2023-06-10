@@ -2,7 +2,6 @@
 const { SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract } = require('./contractModules.js');
 const { potatobatchQuality, chipsBatchDetails } = require('./constantData.js');
 
-
 const oqsFarm = 98;
 const oqsDispatchFarm = 97;
 const oqsReachLC = 95;
@@ -28,46 +27,44 @@ let potatoBatchRelationId, chipsPacketBatchRelationId;
 let farmToLcLogisticsId, lcToFactoryLogisticsId, factoryToRsLogisticsId;
 
 
-const addressObj = {
-    supplyLedger: '0x26F820D3273EbA3Fb8179ef8FbeceA2fE3e8F050',
-    farm: '0x500EC8C101a2C52eA340802ABf4428D1C4BA2ea4',
-    lc: '0x5F1BDA5556c2Ab5D6A8bbC2025DEa0A9d06555e5',
-    factory: '0xAE14bBDabDFa81D10f2A66dA3444cBE5d653aBeF',
-    rs: '0xFD995aE06b56ba799d5A0EA845f4FCD16dCD8c64',
-    logistics: '0xc960195F5e16e7F13a6deE2D54463b703485286A'
-  }
+
 
 
 async function main() {
     const [registrar, farm, localCollector, factory, retailStore, logistics] = await ethers.getSigners();
 
     supplyLedgerContract = new SupplyLedgerContract(registrar.address);
-    await supplyLedgerContract.connectContract(addressObj.supplyLedger);
-    console.log("SupplyLedger Contract connected");
+    await supplyLedgerContract.deploySupplyLedger();
+    console.log("SupplyLedger Contract Deployed");
 
-    farmContract = new FarmContract(addressObj.farm);
+    potatoBatchRelationId = await supplyLedgerContract.getPotatoBatchRelationId()
+    // console.log(potatoBatchRelationId);
+
+    const _farm = await supplyLedgerContract.deployFarm(farm.address);
+    farmContract = new FarmContract(_farm.contractAddr);
     await farmContract.connectContract();
     console.log("Farm Contract Deployed");
 
-    lcContract = new LocalCollectorContract(addressObj.lc);
-    await lcContract.connectContract();
-    console.log(`local collector contract deployed`);
 
-    logisticsContract = new LogisticsContract(addressObj.logistics);
-    await logisticsContract.connectContract();
-    console.log(`logistics contract deployed`);
-
-    factoryContract = new FactoryContract(addressObj.factory);
-    await factoryContract.connectContract();
-    console.log(`factory contract deployed`);
-
-    rsContract = addressObj.rs;
-    console.log(`retail stored is connected`);
-
-
-    potatoBatchRelationId = await supplyLedgerContract.getPotatoBatchRelationId()
     await supplyLedgerContract.addPotatoBatchAtFarm(farm, potatobatchQuality, oqsFarm, weightFarm);
     console.log("potato batch added to farm with Id", potatoBatchRelationId);
+
+
+    // let _dd = await farmContract.farmPotatoBatchDetailOf(potatoBatchRelationId);
+    // console.log(_dd);
+
+    const _lc = await supplyLedgerContract.deployLC(localCollector.address);
+    lcContract = new LocalCollectorContract(_lc.contractAddr);
+    await lcContract.connectContract();
+
+    console.log(`local collector contract deployed`);
+
+
+    const _logistics = await supplyLedgerContract.deployLogistics(logistics.address);
+    logisticsContract = new LogisticsContract(_logistics.contractAddr);
+    await lcContract.logisticsContract();
+
+    console.log(`logistics contract deployed`);
 
     await supplyLedgerContract.dispatchPotatoBatchToLC(farm, potatoBatchRelationId, localCollector.address, oqsDispatchFarm, weightDispatchFarm, logistics.address);
 
@@ -80,17 +77,20 @@ async function main() {
         console.log(`logistic id: ${_logisticId} status updated to: 1`);
         await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 2);
         console.log(`logistic id: ${_logisticId} status updated to: 2`);
-        // await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 3);
-        // console.log(`logistic id: ${_logisticId} status updated to: 3`);
-        // await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 4);
-        // console.log(`logistic id: ${_logisticId} status updated to: 4`);
+        await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 3);
+        console.log(`logistic id: ${_logisticId} status updated to: 3`);
+        await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 4);
+        console.log(`logistic id: ${_logisticId} status updated to: 4`);
     }
     await logisticSteps(farmToLcLogisticsId);
 
     await supplyLedgerContract.potatoBatchStoredAtLC(localCollector, potatoBatchRelationId, oqsReachLC, weightReachLC)
     console.log(`potato batch stored at local collector`);
 
-
+    const _factory = await supplyLedgerContract.deployFactory(factory.address);
+    factoryContract = new FactoryContract(_factory.contractAddr);
+    await factoryContract.connectContract();
+    console.log(`factory contract deployed`);
 
     await supplyLedgerContract.dispatchPotatoBatchToFactory(localCollector, potatoBatchRelationId, factory.address, oqsDispatchLC, weightDispatchLC, logistics.address)
     const dataLc = await lcContract.DispatchedBatchDetails(potatoBatchRelationId);
@@ -105,12 +105,16 @@ async function main() {
     await supplyLedgerContract.chipsPreparedAtFactory(factory, potatoBatchRelationId, chipsBatchDetails);
     console.log(`chips are prepared at factory with id: `, chipsPacketBatchRelationId);
 
+    const _rs = await supplyLedgerContract.deployRs(retailStore.address);
+    console.log(`retail stored is deployed`);
+
     await supplyLedgerContract.chipsPacketBatchDispatchedToRS(factory, chipsPacketBatchRelationId, retailStore.address, weightDispatchLC, logistics.address);
     console.log("chips batch dispatched");
     const datafactory = await factoryContract.DispatchedBatchDetails(potatoBatchRelationId);
     factoryToRsLogisticsId = Number(datafactory.logisticId)
     console.log(`with logistics id: ${factoryToRsLogisticsId}`);
     await logisticSteps(factoryToRsLogisticsId);
+
 
     await supplyLedgerContract.chipsPacketStoredAtRs(retailStore, chipsPacketBatchRelationId, weightDispatchLC);
     console.log(`chips packet stored in reatail store`);

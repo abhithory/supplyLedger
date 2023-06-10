@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
-
-// import "hardhat/console.sol";
-
 import "./BaseEntityContract.sol";
 
 interface BaseFactoryInterface {
@@ -84,9 +81,8 @@ contract Factory is BaseEntityContract, BaseFactoryInterface {
     mapping(uint256 => ChipsBatchDetail) public DispatchedBatchDetails;
 
     constructor(
-        string memory _id,
         address _owner
-    ) BaseEntityContract(_id, _owner, msg.sender) {}
+    ) BaseEntityContract( _owner, msg.sender) {}
 
     function potatoBatchStoredAtFactory(
         uint256 _batchDetailsId,

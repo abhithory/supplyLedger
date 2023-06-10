@@ -12,23 +12,13 @@ interface BaseEntityInterface {
         Regular,
         Irregular
     }
-    enum Color {
-        LightYellow,
-        Golden,
-        Russet,
-        RedSkinned,
-        WhiteSkinned
-    }
+
     enum ExternalQuality {
         NoDefects,
         MinorDefects,
         MajorDefects
     }
-    enum InternalQuality {
-        NoDefects,
-        MinorDefects,
-        MajorDefects
-    }
+
     enum Weight {
         Light,
         Medium,
@@ -38,9 +28,7 @@ interface BaseEntityInterface {
     struct BatchQuality {
         Size size;
         Shape shape;
-        Color color;
         ExternalQuality externalQuality;
-        InternalQuality internalQuality;
         Weight weight;
     }
 
@@ -81,9 +69,6 @@ interface BaseEntityInterface {
 }
 
 contract BaseEntityContract is BaseEntityInterface {
-    string public id;
-    string public name;
-    string public location;
     address public admin;
     address public registrar;
 
@@ -93,8 +78,7 @@ contract BaseEntityContract is BaseEntityInterface {
         _;
     }
 
-    constructor(string memory _id, address _admin, address _registrar) {
-        id = _id;
+    constructor(address _admin, address _registrar) {
         admin = _admin;
         registrar = _registrar;
     }

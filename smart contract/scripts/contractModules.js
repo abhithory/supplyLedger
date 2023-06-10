@@ -8,30 +8,38 @@ class SupplyLedgerContract {
         const supplyLedger = await ethers.getContractFactory("SupplyLedger");
         this.contract = await supplyLedger.deploy(this.registrarAddr);
         this.contract_address = (this.contract).address
+        return (this.contract).address;
+    }
+
+    async connectContract(_Addr) {
+        const supplyLedger = await ethers.getContractFactory("SupplyLedger");
+        this.contract = supplyLedger.attach(_Addr);
+        this.contract_address = _Addr
+        return true
     }
 
     async deployFarm(_Addr) {
-        await this.contract.registerFarm("FARM001", _Addr);
+        await this.contract.registerFarm(_Addr);
         return await this.contract.farmStatus(_Addr);
     }
 
     async deployLC(_Addr) {
-        await this.contract.registerLC("LocalCollector001", _Addr);
+        await this.contract.registerLC(_Addr);
         return await this.contract.lCStatus(_Addr);
     }
 
     async deployFactory(_Addr) {
-        await this.contract.registerFactory("Factory001", _Addr);
+        await this.contract.registerFactory(_Addr);
         return await this.contract.factoryStatus(_Addr);
     }
 
     async deployRs(_Addr) {
-        await this.contract.registerRS("Retail001", _Addr);
+        await this.contract.registerRS(_Addr);
         return await this.contract.rSStatus(_Addr);
     }
 
     async deployLogistics(_Addr) {
-        await this.contract.registerLogistics("Logistics001", _Addr);
+        await this.contract.registerLogistics(_Addr);
         return await this.contract.logisticStatus(_Addr);
     }
 
@@ -146,4 +154,20 @@ class FactoryContract {
     }
 }
 
-module.exports = { SupplyLedgerContract, FarmContract,LocalCollectorContract,FactoryContract }
+class LogisticsContract {
+    constructor(_addr) {
+        this.contract_address = _addr;
+        this.contract = null;
+    }
+
+    async connectContract() {
+        const Logistics = await ethers.getContractFactory("Logistics");
+        this.contract = Logistics.attach(this.contract_address);
+    }
+
+    async shipmentOf(_shipmentId) {
+        return await this.contract.shipmentOf(_shipmentId);
+    }
+}
+
+module.exports = { SupplyLedgerContract, FarmContract,LocalCollectorContract,FactoryContract,LogisticsContract }
