@@ -37,8 +37,8 @@ const weight = {
     dispactchChipsFactory:200000, 
     reachChipsRs1:200000,
     reachChipsRs2:200000,
-    soldChipsPacketType1:100, //(grams)   
-    soldChipsPacketType2:200, //(grams)   
+    soldChipsPacketType1:200, //(grams)   
+    soldChipsPacketType2:100, //(grams)   
     soldChipsPacketType3:500 //(grams)   
 }
 

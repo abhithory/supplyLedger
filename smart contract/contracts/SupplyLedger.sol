@@ -383,6 +383,7 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
 
     function chipsPacketStoredAtRs(
         uint256 _chipsPacketBatchId,
+        uint256 _oqs,
         uint256 _weight
     )
         public
@@ -404,12 +405,12 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
                 .contractAddr
         );
 
-        _retailStore.chipsBatchStoredAtRS(_chipsPacketBatchId, _weight);
+        _retailStore.chipsBatchStoredAtRS(_chipsPacketBatchId, _weight,_oqs);
     }
 
     function chipsPacketSold(
         uint256 _chipsPacketBatchId,
-        PackageSize _packetSize
+        PackageSize _packetSizeType
     )
         public
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.RS)
@@ -430,7 +431,7 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         );
         uint256 _id = chipsPacketId;
         chipsPacketBatchIdOf[_id] = _chipsPacketBatchId;
-        _retailStore.chipsPacketSold(_id, _chipsPacketBatchId, _packetSize);
+        _retailStore.chipsPacketSold(_id, _chipsPacketBatchId, _packetSizeType);
         emit ChipsPacketSold(msg.sender, _id);
         chipsPacketId++;
     }

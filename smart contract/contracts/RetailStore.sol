@@ -27,13 +27,15 @@ contract RetailStore is
 
     function chipsBatchStoredAtRS(
         uint256 _batchDetailsId,
-        uint256 _weight
+        uint256 _weight,
+        uint256 _oqs
     ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
         require(
             ArrivedChipsPacketBatchDetails[_batchDetailsId].weight == 0,
             "Already stored chips packet batch with this id"
         );
 
+        ArrivedChipsPacketBatchDetails[_batchDetailsId].oqs = _oqs;
         ArrivedChipsPacketBatchDetails[_batchDetailsId].weight = _weight;
         ArrivedChipsPacketBatchDetails[_batchDetailsId].time = block.timestamp;
     }
