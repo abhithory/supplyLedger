@@ -16,9 +16,12 @@ function formatDate(sec){
 }
 
 
-const chipsPacketId = 1;
+const chipsPacketId = 2;
 async function findDetail() {
     const [admin] = await ethers.getSigners();
+
+
+    const startTime = new Date();
 
     supplyLedgerRegistrarContract = new SupplyLedgerRegistrarContract(admin.address);
     await supplyLedgerRegistrarContract.connectContract(addressObj.supplyLedgerRegistrar);
@@ -119,6 +122,9 @@ async function findDetail() {
         chipsPacketRelatedAllDetails.itemSold = { size: batchQualityHelp.size[Number(chipsPacketSoldDetails.size)], timestamp: formatDate(Number(chipsPacketSoldDetails.time)) };
 
         console.log(chipsPacketRelatedAllDetails);
+
+
+        console.log("time taken", new Date() - startTime, " ms");
 
 }
 
