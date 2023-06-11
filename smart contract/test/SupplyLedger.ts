@@ -611,19 +611,19 @@ describe("SupplyLedger", function () {
         // console.log("potato Batch Relations ",potatoBatchRelationDetails);
 
 
-        const _farmStatus = await supplyLedgerRegistrar.entityDetails(EntityType.Farm, farm.address);
+        const _farmStatus = await supplyLedgerRegistrar.entityDetails(EntityType.Farm, potatoBatchRelationDetails.farm);
         const FarmContract = await ethers.getContractFactory("Farm");
         const _farmContract = FarmContract.attach(_farmStatus.contractAddr);
 
-        const _lcStatus = await supplyLedgerRegistrar.entityDetails(EntityType.LC, localCollector.address)
+        const _lcStatus = await supplyLedgerRegistrar.entityDetails(EntityType.LC, potatoBatchRelationDetails.localCollector)
         const localCollectorContract = await ethers.getContractFactory("LocalCollector");
         const _localCollectorContract = localCollectorContract.attach(_lcStatus.contractAddr);
 
-        const _factoryStatus = await supplyLedgerRegistrar.entityDetails(EntityType.Factory, factory.address);
+        const _factoryStatus = await supplyLedgerRegistrar.entityDetails(EntityType.Factory, potatoBatchRelationDetails.factory);
         const factoryContract = await ethers.getContractFactory("Factory");
         const _factoryContract = factoryContract.attach(_factoryStatus.contractAddr);
 
-        const _rsStatus = await supplyLedgerRegistrar.entityDetails(EntityType.RS, retailStore.address)
+        const _rsStatus = await supplyLedgerRegistrar.entityDetails(EntityType.RS, chipsPacketBatchRelationDetails.retailStore)
         const RetailStoreContract = await ethers.getContractFactory("RetailStore");
         const _RetailStoreContract = RetailStoreContract.attach(_rsStatus.contractAddr);
 
