@@ -48,7 +48,7 @@ const weight = {
     atDispatchFarm4:97,
     reachLc1:490,
     reachLc2:490,
-    dispactchLc2:1460,
+    dispactchLc1:1460,
     dispactchLc2:1460,
     reachFactory:1450,
     dispactchChipsFactory:500, 
@@ -70,7 +70,7 @@ const oqs = {
     atDispatchFarm4:97,
     reachLc1:95,
     reachLc2:95,
-    dispactchLc2:94,
+    dispactchLc1:94,
     dispactchLc2:94,
     reachFactory:92,
     dispactchChipsFactory:97, // chips overall quality 

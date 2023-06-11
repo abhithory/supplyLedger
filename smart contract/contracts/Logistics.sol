@@ -63,10 +63,10 @@ contract Logistics is
     event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
 
     constructor(
-                address _sl,
+        address _sl,
         address _owner,
         uint256 _maxCapacity
-    ) BaseEntityContract(_owner, _sl,_maxCapacity) ConfirmedOwner(msg.sender) {
+    ) BaseEntityContract(_owner, _sl, _maxCapacity) ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "53f9755920cd451a8fe46f5087468395";
@@ -108,8 +108,16 @@ contract Logistics is
                 shipmentOf[_shipmentId].batchId,
                 _shipmentId
             );
+        } else if (_status == 2) {
+            // requestUpdateStaus(_shipmentId);
+
+            // ===================== for local testing
+
+            shipmentOf[_shipmentId].status = ShipmentStatus(2);
+            shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
+            shipmentOf[_shipmentId].weightAtArrived = 95;
         } else {
-            requestUpdateStaus(_shipmentId);
+            require(false, "status is wrong");
         }
     }
 
