@@ -35,11 +35,11 @@ interface FarmInterface {
 }
 
 contract Farm is BaseEntityContract, FarmInterface {
+    // oqs - overalll quailty score => 0-100
     struct FarmPotatoBatchDetail {
-        // oqs - overalll quailty score => 0-100
         BatchQuality harvestBatchQuality;
         uint256 oqsHarvest; // oqs when farmer collect potatos batch from farm
-        uint256 batchWeight; // in kg
+        uint256 harvestBatchWeight; // in kg
         uint256 collectedAt; // time when potatos are collected
         uint256 logisticId;
         uint256 weightDispatch; // weight at the time of potatos batch dispatched To Local Collector
@@ -52,18 +52,21 @@ contract Farm is BaseEntityContract, FarmInterface {
     constructor(
         address _owner,
         uint256 _maxCapacity
-    ) BaseEntityContract(_owner, msg.sender,_maxCapacity) {}
+    ) BaseEntityContract(_owner, msg.sender, _maxCapacity) {}
 
     function potatoBatchCollectedAtFarm(
-        uint256 _id,
+        uint256 _potatoBatchDetails,
         BatchQuality memory _qq,
-        uint256 _ww,
+        uint256 _weight,
         uint256 _oqs
-    ) public onlyRegistrar {
-        farmPotatoBatchDetailOf[_id].harvestBatchQuality = _qq;
-        farmPotatoBatchDetailOf[_id].batchWeight = _ww;
-        farmPotatoBatchDetailOf[_id].oqsHarvest = _oqs;
-        farmPotatoBatchDetailOf[_id].collectedAt = block.timestamp;
+    ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
+        currentAllocation += _weight;
+        farmPotatoBatchDetailOf[_potatoBatchDetails].harvestBatchQuality = _qq;
+        farmPotatoBatchDetailOf[_potatoBatchDetails]
+            .harvestBatchWeight = _weight;
+        farmPotatoBatchDetailOf[_potatoBatchDetails].oqsHarvest = _oqs;
+        farmPotatoBatchDetailOf[_potatoBatchDetails].collectedAt = block
+            .timestamp;
     }
 
     function potatoBatchDispatchedFromFarm(
@@ -71,13 +74,15 @@ contract Farm is BaseEntityContract, FarmInterface {
         uint256 _logisticId,
         address _logisticContractAddr,
         uint256 _oqs,
-        uint256 _ww
-    ) public onlyRegistrar {
+        uint256 _weight
+    ) public onlyRegistrar isMinCapacityAvailable(_weight) {
+        currentAllocation -= _weight;
         farmPotatoBatchDetailOf[_potatoBatchRelationId]
             .logisticId = _logisticId;
         farmPotatoBatchDetailOf[_potatoBatchRelationId]
             .logisticContractAddr = _logisticContractAddr;
-        farmPotatoBatchDetailOf[_potatoBatchRelationId].weightDispatch = _ww;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId]
+            .weightDispatch = _weight;
         farmPotatoBatchDetailOf[_potatoBatchRelationId].oqsDispatch = _oqs;
     }
 }

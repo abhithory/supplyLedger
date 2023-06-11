@@ -28,7 +28,7 @@ contract SupplyLedgerRegistrar {
 
     modifier onlyAdmin() {
         require(admin == msg.sender, "Only admin can call this function");
-        _; // Continue executing the function body
+        _;
     }
 
     function registerEntity(
