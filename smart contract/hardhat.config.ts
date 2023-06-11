@@ -10,8 +10,8 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         // allowUnlimitedContractSize: true,
-        // enabled: true,
-        // runs: 200
+        enabled: true,
+        runs: 200
       }
     }
   },

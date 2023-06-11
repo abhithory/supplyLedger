@@ -33,8 +33,8 @@ contract SupplyLedger is
 
     SupplyLedgerRegistrar supplyLedgerRegistrar;
 
-    constructor(address admin) {
-        supplyLedgerRegistrar = SupplyLedgerRegistrar(admin);
+    constructor(SupplyLedgerRegistrar _supplyLedgerRegistrar) {
+        supplyLedgerRegistrar = _supplyLedgerRegistrar;
     }
 
 
