@@ -1,22 +1,50 @@
 const addressObj = {
-    supplyLedger: '0xB2459eCA29d6d42947B896D017436b728c6f19A8',
-    farm: '0xCe58005131AdF57Ab726f675CcB25C1eEb163C5c',
-    lc: '0xaf39A3bFe538099494669f47c386df088083C7B5',
-    factory: '0x1a6a16DE6F2956Bf089c728845f66257da2Ed679',
-    rs: '0xf548A4C7C6E97af82eEBa567C826c8af796B4841',
-    logistics: '0x51658C2733D25f1f732bb7D880b769A4D439BeBa'
+    supplyLedgerRegistrar: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+    supplyLedger: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    farm: '0xCafac3dD18aC6c6e92c921884f9E4176737C052c',
+    lc: '0x9f1ac54BEF0DD2f6f3462EA0fa94fC62300d3a8e',
+    factory: '0x93b6BDa6a0813D808d75aA42e900664Ceb868bcF',
+    rs: '0xA22D78bc37cE77FeE1c44F0C2C0d2524318570c3',
+    logistics: '0xbf9fBFf01664500A33080Da5d437028b07DFcC55'
   }
 
-
-class SupplyLedgerContract {
-    constructor(_registrar) {
-        this.registrarAddr = _registrar;
+class SupplyLedgerRegistrarContract {
+    constructor(_admin) {
+        this.admin = _admin;
         this.contract = null;
         this.contract_address = null;
     }
-    async deploySupplyLedger() {
+    async deploy(_supplyLedgerAddress) {
+        const supplyLedgerRegistrar = await ethers.getContractFactory("SupplyLedgerRegistrar");
+        this.contract = await supplyLedgerRegistrar.deploy(_supplyLedgerAddress);
+        this.contract_address = (this.contract).address
+        return (this.contract).address;
+    }
+
+    async connectContract(_Addr) {
+        const supplyLedgerRegistrar = await ethers.getContractFactory("SupplyLedgerRegistrar");
+        this.contract = supplyLedgerRegistrar.attach(_Addr);
+        this.contract_address = _Addr
+        return true
+    }
+
+    async registerEntity(entityType,_Addr,maxCapacity,maxChipsCapacity) {
+        const tx = await this.contract.registerEntity(entityType,_Addr,maxCapacity,maxChipsCapacity);
+        await tx.wait()
+        return await this.contract.entityDetails(entityType,_Addr);
+    }
+
+
+}
+class SupplyLedgerContract {
+    constructor(_admin) {
+        this.admin = _admin;
+        this.contract = null;
+        this.contract_address = null;
+    }
+    async deploy() {
         const supplyLedger = await ethers.getContractFactory("SupplyLedger");
-        this.contract = await supplyLedger.deploy(this.registrarAddr);
+        this.contract = await supplyLedger.deploy(this.admin);
         this.contract_address = (this.contract).address
         return (this.contract).address;
     }
@@ -26,37 +54,6 @@ class SupplyLedgerContract {
         this.contract = supplyLedger.attach(_Addr);
         this.contract_address = _Addr
         return true
-    }
-
-    async deployFarm(_Addr) {
-        const tx = await this.contract.registerFarm(_Addr);
-        await tx.wait()
-        return await this.contract.farmStatus(_Addr);
-    }
-
-    async deployLC(_Addr) {
-        await this.contract.registerLC(_Addr);
-        const tx = await this.contract.registerFarm(_Addr);
-        await tx.wait()
-        return await this.contract.lCStatus(_Addr);
-    }
-
-    async deployFactory(_Addr) {
-        const tx = await this.contract.registerFactory(_Addr);
-        await tx.wait()
-        return await this.contract.factoryStatus(_Addr);
-    }
-
-    async deployRs(_Addr) {
-        const tx = await this.contract.registerRS(_Addr);
-        await tx.wait()
-        return await this.contract.rSStatus(_Addr);
-    }
-
-    async deployLogistics(_Addr) {
-        const tx = await this.contract.registerLogistics(_Addr);
-        await tx.wait()
-        return await this.contract.logisticStatus(_Addr);
     }
 
     async getPotatoBatchRelationId() {
@@ -69,6 +66,12 @@ class SupplyLedgerContract {
 
     async getChipsPacketId() {
         return Number(await this.contract.chipsPacketId());
+    }
+
+    async updateSupplyLedgerRegistar(adminSigner, _supplyLedgerRegistrarAddr) {
+        const tx = await this.contract.connect(adminSigner).updateSupplyLedgerRegistar(_supplyLedgerRegistrarAddr);
+        await tx.wait();
+        return true;
     }
 
     async addPotatoBatchAtFarm(farmSigner, potatobatchQuality, oqsFarm, weightFarm) {
@@ -205,4 +208,4 @@ class LogisticsContract {
     }
 }
 
-module.exports = {addressObj, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }
+module.exports = { addressObj,SupplyLedgerRegistrarContract, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }

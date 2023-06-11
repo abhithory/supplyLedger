@@ -1,27 +1,10 @@
 
-const { addressObj, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract } = require('./contractModules.js');
+const { addressObj, SupplyLedgerRegistrarContract,SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract } = require('./contractModules.js');
 const { potatobatchQuality, chipsBatchDetails, weight, oqs } = require('../src/constantData.js');
 
 
-const oqsFarm = 98;
-const oqsDispatchFarm = 97;
-const oqsReachLC = 95;
-const oqsDispatchLC = 94;
-const oqsReachRS = 92;
-const oqsSold = 90;
 
-const weightFarm = 500;
-const weightDispatchFarm = 495;
-const weightReachLC = 480;
-const weightDispatchLC = 460;
-const soldPacketWeight = 1;
-
-const weightDispatchFactory = 420;
-const weightReachRS = 445;
-
-
-
-let supplyLedgerContract, farmContract, lcContract, factoryContract, rsContract, logisticsContract;
+let supplyLedgerRegistrarContract, supplyLedgerContract, farmContract, lcContract, factoryContract, rsContract, logisticsContract;
 let potatoBatchRelationId, chipsPacketBatchRelationId;
 let farmToLcLogisticsId, lcToFactoryLogisticsId, factoryToRsLogisticsId;
 
@@ -29,9 +12,15 @@ let farmToLcLogisticsId, lcToFactoryLogisticsId, factoryToRsLogisticsId;
 
 const waitForSecs = ms => new Promise(res => setTimeout(res, ms));
 async function main() {
-    const [registrar, farm, localCollector, factory, retailStore, logistics] = await ethers.getSigners();
+    const [admin, farm, localCollector, factory, retailStore, logistics] = await ethers.getSigners();
 
-    supplyLedgerContract = new SupplyLedgerContract(registrar.address);
+
+    supplyLedgerRegistrarContract = new SupplyLedgerRegistrarContract(admin.address);
+    await supplyLedgerRegistrarContract.connectContract(addressObj.supplyLedgerRegistrar);
+    console.log("SupplyLedger Contract connected");
+
+
+    supplyLedgerContract = new SupplyLedgerContract(admin.address);
     await supplyLedgerContract.connectContract(addressObj.supplyLedger);
     console.log("SupplyLedger Contract connected");
 
