@@ -26,13 +26,14 @@ const chipsBatchDetails = {
     shelfLife: 6
 }
 
-
-
-const capacities = {
+//  weight - kg * 1000
+const maxCapacity = {
     farm: 500, // potato
     lc:1500, // potato
     factory:3000, // potato
-    retailStore:250 //chips
+    factoryChips:2000, // potato
+    rs:250, //chips
+    logistics: 3000
 }
 
 // all in kg except chipsPacket
@@ -72,12 +73,11 @@ const oqs = {
     dispactchLc2:94,
     dispactchLc2:94,
     reachFactory:92,
-    // dispactchChipsFactory:97, // chips overall quality 
-    // reachChipsRs1:95,
-    // reachChipsRs2:95,
-    // soldChipsPacketType1:94, //(grams)   
-    // soldChipsPacketType2:94 //(grams)   
+    dispactchChipsFactory:97, // chips overall quality 
+    reachChipsRs1:95,
+    reachChipsRs2:95,
+    soldChipsPacketType1:94, //(grams)   
+    soldChipsPacketType2:94 //(grams)   
 }
 
-
-module.exports = {potatobatchQuality,chipsBatchDetails, weight, oqs}
+module.exports = {potatobatchQuality,chipsBatchDetails, weight, oqs, maxCapacity}

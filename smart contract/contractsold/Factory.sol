@@ -69,10 +69,8 @@ interface FactoryInterface {
 
 contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
     mapping(uint256 => ChipsPacketBatch) public chipsPacketBatchOf;
-    mapping(uint256 => BatchDetail) public ArrivedBatchDetails;
+    mapping(uint256 => BatchDetail) public ArrivedPotatoBatchDetails;
     mapping(uint256 => BatchDetail) public DispatchedChipsPacketBatchDetails;
-
-    mapping(uint256 => bool) public areChipsPreparedFromPotatoBatchOf;
 
     uint256 public maxChipsPacketBatchCapacity; // kg * 1000
     uint256 public currentChipsPacketBatchAllocation; // kg * 1000
@@ -86,17 +84,13 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
     }
 
     function potatoBatchStoredAtFactory(
-        uint256 _potatoBatchId,
+        uint256 _batchDetailsId,
         uint256 _weight,
         uint256 _oqs
     ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
-        require(
-            ArrivedBatchDetails[_potatoBatchId].weight == 0,
-            "Potato batch already stored"
-        );
-        ArrivedBatchDetails[_potatoBatchId].weight = _weight;
-        ArrivedBatchDetails[_potatoBatchId].oqs = _oqs;
-        ArrivedBatchDetails[_potatoBatchId].time = block.timestamp;
+        ArrivedPotatoBatchDetails[_batchDetailsId].weight = _weight;
+        ArrivedPotatoBatchDetails[_batchDetailsId].oqs = _oqs;
+        ArrivedPotatoBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
     // TODO: check the pottao batch is already prepared or not/ is this factory has this potao batch??
@@ -107,23 +101,16 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
         public
         onlyRegistrar
         isMinCapacityAvailable(
-            ArrivedBatchDetails[_details.potatoBatchId].weight
+            ArrivedPotatoBatchDetails[_details.potatoBatchId].weight
         )
     {
-        require(
-            ArrivedBatchDetails[_details.potatoBatchId].weight >= 0,
-            "There is no potato batch related to this potato batch id in factory"
-        );
-        require(
-            !areChipsPreparedFromPotatoBatchOf[_details.potatoBatchId],
-            "Potato batch is already used for preparing chips in factory"
-        );
         require(
             maxChipsPacketBatchCapacity >=
                 currentChipsPacketBatchAllocation + _details.totalWeight,
             "Max storage capacity of chips packet batch exceeded"
         );
         currentChipsPacketBatchAllocation += _details.totalWeight;
+
         chipsPacketBatchOf[chipsPacketBatchId] = _details;
         chipsPacketBatchOf[chipsPacketBatchId].productionDate = block.timestamp;
     }
@@ -137,11 +124,7 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
     ) public onlyRegistrar {
         require(
             currentChipsPacketBatchAllocation >= _weight,
-            "Insufficient capacity of chips packet batch."
-        );
-        require(
-            DispatchedChipsPacketBatchDetails[_chipsPacketBatchId].weight == 0,
-            "chips packet batch is already Dispatched"
+             "Insufficient capacity of chips packet batch."
         );
         currentChipsPacketBatchAllocation -= _weight;
         DispatchedChipsPacketBatchDetails[_chipsPacketBatchId] = BatchDetail(
@@ -157,6 +140,6 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
         uint256 _batchId,
         uint256 _logisticId
     ) public {
-        ArrivedBatchDetails[_batchId].logisticId = _logisticId;
+        ArrivedPotatoBatchDetails[_batchId].logisticId = _logisticId;
     }
 }

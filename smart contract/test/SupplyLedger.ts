@@ -3,30 +3,24 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-const { potatobatchQuality, chipsBatchDetails, weight, oqs } = require('../src/constantData.js');
+const { potatobatchQuality, chipsBatchDetails, maxCapacity, weight, oqs } = require('../src/constantData.js');
 
-
+const EntityType = {
+    Farm: 0,
+    LC: 1,
+    Factory: 2,
+    RS: 3,
+    Logistics: 4,
+}
 
 
 describe("SupplyLedger", function () {
-
-    const oqsFarm = 98;
-    const oqsDispatchFarm = 97;
-    const oqsReachLC = 95;
-    const oqsDispatchLC = 94;
-    const oqsReachRS = 92;
-    const oqsSold = 90;
-
-    const weightFarm = 500;
-    const weightDispatchFarm = 495;
-    const weightReachLC = 480;
-    const weightDispatchLC = 460;
-    const soldPacketWeight = 1;
-
-    const weightDispatchFactory = 420;
-    const weightReachRS = 445;
+    
 
 
+    let farmEntity: any, lcEntity: any, factoryEntity: any, rsEntity: any, logisticsEntity: any;
+    let _potatoBatchRelationId: number, _chipsPacketBatchRelationId: number, _chipsPacketId: number;
+    let _farmToLcLogisticsId: number, _LcToFactoryLogisticsId: number, _factoryToRsLogisticsId: number;
 
     async function SupplyLedgerFixture() {
         // Contracts are deployed using the first signer/account by default
@@ -44,33 +38,33 @@ describe("SupplyLedger", function () {
     }
 
     async function deployFarm(supplyLedgerRegistrar:any, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        expect((await SupplyLedger.farmStatus(farm.address)).status).to.equal(false);
-        await SupplyLedger.registerFarm(farm.address);
-        expect((await SupplyLedger.farmStatus(farm.address)).status).to.equal(true);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.Farm, farm.address)).status).to.equal(false);
+        await supplyLedgerRegistrar.registerEntity(EntityType.Farm, farm.address, maxCapacity.farm, 0);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.Farm, farm.address)).status).to.equal(true);
     }
 
     async function deployLC(supplyLedgerRegistrar:any, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        expect((await SupplyLedger.lCStatus(localCollector.address)).status).to.equal(false);
-        await SupplyLedger.registerLC(localCollector.address);
-        expect((await SupplyLedger.lCStatus(localCollector.address)).status).to.equal(true);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.LC, localCollector.address)).status).to.equal(false);
+        await supplyLedgerRegistrar.registerEntity(EntityType.LC, localCollector.address, maxCapacity.lc, 0);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.LC, localCollector.address)).status).to.equal(true);
     }
 
     async function deployFactory(supplyLedgerRegistrar:any, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        expect((await SupplyLedger.factoryStatus(factory.address)).status).to.equal(false);
-        await SupplyLedger.registerFactory(factory.address);
-        expect((await SupplyLedger.factoryStatus(factory.address)).status).to.equal(true);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.Factory, factory.address)).status).to.equal(false);
+        await supplyLedgerRegistrar.registerEntity(EntityType.Factory, factory.address, maxCapacity.factory, maxCapacity.factoryChips);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.Factory, factory.address)).status).to.equal(true);
     }
 
     async function deployRS(supplyLedgerRegistrar:any, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        expect((await SupplyLedger.rSStatus(retailStore.address)).status).to.equal(false);
-        await SupplyLedger.registerRS(retailStore.address);
-        expect((await SupplyLedger.rSStatus(retailStore.address)).status).to.equal(true);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.RS, retailStore.address)).status).to.equal(false);
+        await supplyLedgerRegistrar.registerEntity(EntityType.RS, retailStore.address, maxCapacity.rs, 0);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.RS, retailStore.address)).status).to.equal(true);
     }
 
     async function deployLogistics(supplyLedgerRegistrar:any, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {
-        expect((await SupplyLedger.logisticStatus(logistics.address)).status).to.equal(false);
-        await SupplyLedger.registerLogistics(logistics.address);
-        expect((await SupplyLedger.logisticStatus(logistics.address)).status).to.equal(true);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.Logistics, logistics.address)).status).to.equal(false);
+        await supplyLedgerRegistrar.registerEntity(EntityType.Logistics, logistics.address, maxCapacity.logistics, 0);
+        expect((await supplyLedgerRegistrar.entityDetails(EntityType.Logistics, logistics.address)).status).to.equal(true);
     }
 
     describe("Deployment + Registrartion", function () {
@@ -80,7 +74,6 @@ describe("SupplyLedger", function () {
               expect(await supplyLedgerRegistrar.admin()).to.equal(admin.address);
         });
         
-        return
         it("Should deploy Farm and set right address", async function () {
             const { supplyLedgerRegistrar, SupplyLedger, farm, localCollector, factory, retailStore, logistics } = await loadFixture(SupplyLedgerFixture);
             await deployFarm(supplyLedgerRegistrar, SupplyLedger, farm, localCollector, factory, retailStore, logistics);
@@ -107,11 +100,6 @@ describe("SupplyLedger", function () {
         });
     });
 
-
-
-    let farmEntity: any, lcEntity: any, factoryEntity: any, rsEntity: any, logisticsEntity: any;
-    let _potatoBatchRelationId: number, _chipsPacketBatchRelationId: number, _chipsPacketId: number;
-    let _farmToLcLogisticsId: number, _LcToFactoryLogisticsId: number, _factoryToRsLogisticsId: number;
 
 
     async function addPotatoBatchInFarm(supplyLedgerRegistrar:any, SupplyLedger: any, farm: any, localCollector: any, factory: any, retailStore: any, logistics: any) {

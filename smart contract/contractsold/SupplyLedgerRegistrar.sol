@@ -33,7 +33,7 @@ contract SupplyLedgerRegistrar {
 
     function registerEntity(
         EntityType _et,
-        address _admin,
+        address _owner,
         uint256 _maxCapacity,
         uint256 _maxChipsPacketBatchCapacity
     ) public onlyAdmin {
@@ -43,25 +43,25 @@ contract SupplyLedgerRegistrar {
         );
         address _entityAddress;
         if (_et == EntityType.Farm) {
-            Farm _farm = new Farm(_admin, _maxCapacity);
+            Farm _farm = new Farm(_owner, _maxCapacity);
             _entityAddress = address(_farm);
         } else if (_et == EntityType.LC) {
             LocalCollector _LocalCollector = new LocalCollector(
-                _admin,
+                _owner,
                 _maxCapacity
             );
             _entityAddress = address(_LocalCollector);
         } else if (_et == EntityType.Factory) {
-            Factory _Factory = new Factory(_admin, _maxCapacity,_maxChipsPacketBatchCapacity);
+            Factory _Factory = new Factory(_owner, _maxCapacity,_maxChipsPacketBatchCapacity);
             _entityAddress = address(_Factory);
         } else if (_et == EntityType.RS) {
-            RetailStore _RetailStore = new RetailStore(_admin, _maxCapacity);
+            RetailStore _RetailStore = new RetailStore(_owner, _maxCapacity);
             _entityAddress = address(_RetailStore);
         } else if (_et == EntityType.Logistics) {
-            Logistics _Logistics = new Logistics(_admin, _maxCapacity);
+            Logistics _Logistics = new Logistics(_owner, _maxCapacity);
             _entityAddress = address(_Logistics);
         }
-        entityDetails[_et][_admin] = Entity(_entityAddress, true);
+        entityDetails[_et][_owner] = Entity(_entityAddress, true);
     }
 
     function getEntityDetails(EntityType _et, address _eAddress) public view returns(Entity memory){

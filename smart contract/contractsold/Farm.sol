@@ -55,37 +55,32 @@ contract Farm is BaseEntityContract, FarmInterface {
     ) BaseEntityContract(_owner, msg.sender, _maxPotatoBatchCapacity) {}
 
     function potatoBatchCollectedAtFarm(
-        uint256 _potatoBatchId,
+        uint256 _potatoBatchDetails,
         BatchQuality memory _qq,
         uint256 _weight,
         uint256 _oqs
     ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
-        require(
-            farmPotatoBatchDetailOf[_potatoBatchId].harvestBatchWeight == 0,
-            "Potato batch already stored"
-        );
-
-        farmPotatoBatchDetailOf[_potatoBatchId].harvestBatchQuality = _qq;
-        farmPotatoBatchDetailOf[_potatoBatchId].harvestBatchWeight = _weight;
-        farmPotatoBatchDetailOf[_potatoBatchId].oqsHarvest = _oqs;
-        farmPotatoBatchDetailOf[_potatoBatchId].collectedAt = block.timestamp;
+        farmPotatoBatchDetailOf[_potatoBatchDetails].harvestBatchQuality = _qq;
+        farmPotatoBatchDetailOf[_potatoBatchDetails]
+            .harvestBatchWeight = _weight;
+        farmPotatoBatchDetailOf[_potatoBatchDetails].oqsHarvest = _oqs;
+        farmPotatoBatchDetailOf[_potatoBatchDetails].collectedAt = block
+            .timestamp;
     }
 
     function potatoBatchDispatchedFromFarm(
-        uint256 _potatoBatchId,
+        uint256 _potatoBatchRelationId,
         uint256 _logisticId,
         address _logisticContractAddr,
         uint256 _oqs,
         uint256 _weight
     ) public onlyRegistrar isMinCapacityAvailable(_weight) {
-        require(
-            farmPotatoBatchDetailOf[_potatoBatchId].weightDispatch == 0,
-            "Potato batch already Dispatched"
-        );
-        farmPotatoBatchDetailOf[_potatoBatchId].logisticId = _logisticId;
-        farmPotatoBatchDetailOf[_potatoBatchId]
+        farmPotatoBatchDetailOf[_potatoBatchRelationId]
+            .logisticId = _logisticId;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId]
             .logisticContractAddr = _logisticContractAddr;
-        farmPotatoBatchDetailOf[_potatoBatchId].weightDispatch = _weight;
-        farmPotatoBatchDetailOf[_potatoBatchId].oqsDispatch = _oqs;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId]
+            .weightDispatch = _weight;
+        farmPotatoBatchDetailOf[_potatoBatchRelationId].oqsDispatch = _oqs;
     }
 }

@@ -17,7 +17,6 @@ contract RetailStore is
 
     mapping(uint256 => BatchDetail) public ArrivedChipsPacketBatchDetails;
     mapping(uint256 => ChipsPacketDetail) public soldChipsPacket;
-    mapping(uint256 => uint256) public chipsWeightSoldFromBatchId;
 
     constructor(
         address _owner,
@@ -28,51 +27,37 @@ contract RetailStore is
         uint256 _batchDetailsId,
         uint256 _weight
     ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
-        require(
-            ArrivedChipsPacketBatchDetails[_batchDetailsId].weight == 0,
-            "Already stored chips packet batch with this id"
-        );
-
         ArrivedChipsPacketBatchDetails[_batchDetailsId].weight = _weight;
         ArrivedChipsPacketBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
+    // TODO: check the chips batch is reached or not. || also check capacity of batch
     function chipsPacketSold(
         uint256 _chipsPacketId,
         uint256 _chipsPacketBatchId,
         PackageSize size
     ) public onlyRegistrar {
-        require(
-            ArrivedChipsPacketBatchDetails[_chipsPacketBatchId].weight >= 0,
-            "chips Packet Batch not Arrived here"
-        );
-        uint256 weightToSell;
+        uint256 weightToDispatch;
         if (size == PackageSize.Gram100) {
-            weightToSell = 100;
+            weightToDispatch = 100;
         } else if (size == PackageSize.Gram200) {
-            weightToSell = 200;
+            weightToDispatch = 200;
         } else if (size == PackageSize.Gram500) {
-            weightToSell = 500;
+            weightToDispatch = 500;
         } else {
             require(false, "Wrong chips packet size");
         }
         require(
-            ArrivedChipsPacketBatchDetails[_chipsPacketBatchId].weight >= chipsWeightSoldFromBatchId[_chipsPacketBatchId] + weightToSell,
-            "Insufficient capacity of chips packet from this chips packet batch."
-        );
-
-        require(
-            currentAllocation >= weightToSell,
+            currentAllocation >= weightToDispatch,
             "Insufficient capacity of chips packet."
         );
-        currentAllocation -= weightToSell;
+        currentAllocation -= weightToDispatch;
 
         soldChipsPacket[_chipsPacketId] = ChipsPacketDetail(
             _chipsPacketBatchId,
             size,
             block.timestamp
         );
-        chipsWeightSoldFromBatchId[_chipsPacketBatchId] += weightToSell;
     }
 
     function receivedFromLogistic(

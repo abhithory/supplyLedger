@@ -13,33 +13,23 @@ contract LocalCollector is BaseEntityContract, BaseEntityInterface {
     ) BaseEntityContract(_owner, msg.sender, _maxPotatoBatchCapacity) {}
 
     function potatoBatchStoredAtLC(
-        uint256 _potatoBatchId,
+        uint256 _batchDetailsId,
         uint256 _weight,
         uint256 _oqs
     ) public isMaxCapacityNotExceeded(_weight) {
-        require(
-            ArrivedBatchDetails[_potatoBatchId].weight == 0,
-            "Potato batch already stored"
-        );
-
-        ArrivedBatchDetails[_potatoBatchId].weight = _weight;
-        ArrivedBatchDetails[_potatoBatchId].oqs = _oqs;
-        ArrivedBatchDetails[_potatoBatchId].time = block.timestamp;
+        ArrivedBatchDetails[_batchDetailsId].weight = _weight;
+        ArrivedBatchDetails[_batchDetailsId].oqs = _oqs;
+        ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
     function dispatchPotatoBatchToFactory(
-        uint256 _potatoBatchId,
+        uint256 _batchDetailsId,
         uint256 _logisticId,
         address _logisticContractAddr,
         uint256 _weight,
         uint256 _oqs
     ) public isMinCapacityAvailable(_weight) {
-        require(
-            DispatchedBatchDetails[_potatoBatchId].weight == 0,
-            "Potato batch already Dispatched"
-        );
-
-        DispatchedBatchDetails[_potatoBatchId] = BatchDetail(
+        DispatchedBatchDetails[_batchDetailsId] = BatchDetail(
             _logisticId,
             _logisticContractAddr,
             _weight,
