@@ -3,8 +3,6 @@ pragma solidity ^0.8.9;
 
 import "./SupplyLedgerRegistrar.sol";
 
-
-    // SupplyLedgerRegistrar,
 contract SupplyLedger is
     FactoryInterface,
     FarmInterface
@@ -36,8 +34,6 @@ contract SupplyLedger is
     constructor(SupplyLedgerRegistrar _supplyLedgerRegistrar) {
         supplyLedgerRegistrar = _supplyLedgerRegistrar;
     }
-
-
 
     modifier onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType _et) {
         require(
