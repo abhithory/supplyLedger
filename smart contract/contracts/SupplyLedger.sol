@@ -28,6 +28,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         address indexed FarmAddress,
         uint256 indexed CreatedPotatoBatchId
     );
+        event ChipsPacketBatchPrepared(
+        address indexed FactoryAddress,
+        uint256 indexed PreparedChipsPacketBatchId
+    );
     event ChipsPacketSold(
         address indexed RetailStore,
         uint256 indexed SoldChipsPacketId
@@ -287,11 +291,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
     }
 
     function chipsPreparedAtFactory(
-        uint256 _potatoBatchId,
         ChipsPacketBatch memory _details
     ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory) {
         require(
-            msg.sender == potatBatchRelationOf[_potatoBatchId].factory,
+            msg.sender == potatBatchRelationOf[_details.potatoBatchId].factory,
             "Only the Original Factory can call"
         );
 
@@ -303,18 +306,20 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
                 )
                 .contractAddr
         );
-        _Factory.chipsBatchPrepared(chipsPacketBatchId, _details);
+        uint256 _id = chipsPacketBatchId;
+        _Factory.chipsBatchPrepared(_id, _details);
 
-        chipsPacketBatchRelationsOf[chipsPacketBatchId]
-            .potatosRelativeId = _potatoBatchId;
+        chipsPacketBatchRelationsOf[_id]
+            .potatosRelativeId = _details.potatoBatchId;
+        emit ChipsPacketBatchPrepared(msg.sender, _id);
         chipsPacketBatchId++;
     }
 
     function chipsPacketBatchDispatchedToRS(
         uint256 _chipsPacketBatchId,
         address _rs,
+        uint256 _oqs,
         uint256 _ww,
-        uint256 _oqc,
         address _logisticsAddr
     )
         public
@@ -372,7 +377,7 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
                 )
                 .contractAddr,
             _ww,
-            _oqc
+            _oqs
         );
     }
 

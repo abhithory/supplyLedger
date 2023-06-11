@@ -7,55 +7,39 @@ const potatobatchQuality = {
     "weight": 0,
 }
 
-const chipsBatchDetails = {
-    chipsDetail: {
-        flavor: 1,
-        texture: 0
-    },
-    processDetails: {
-        cookingTemperature: 90,
-        ingredients: [0, 1, 2]
-    },
-    packagingDetails: {
-        packagingMaterial: 0,
-        packageSize: 1
-    },
-    totalPackets: 20,
-    totalWeight: 2,
-    productionDate: 0,
-    shelfLife: 6
-}
+
 
 //  weight - kg * 1000
 const maxCapacity = {
-    farm: 500, // potato
-    lc:1500, // potato
-    factory:3000, // potato
-    factoryChips:2000, // potato
-    rs:250, //chips
-    logistics: 3000
+    farm: 500000, // potato
+    lc:1500000, // potato
+    factory:3000000, // potato
+    factoryChips:2000000, // potato
+    rs:250000, //chips
+    logistics: 3000000
 }
 
 // all in kg except chipsPacket
 const weight = {
-    harvestAtFarm1:100,
-    harvestAtFarm2:98,
-    harvestAtFarm3:98,
-    harvestAtFarm4:98,
-    atDispatchFarm1:97,
-    atDispatchFarm2:97,
-    atDispatchFarm3:97,
-    atDispatchFarm4:97,
-    reachLc1:490,
-    reachLc2:490,
-    dispactchLc1:1460,
-    dispactchLc2:1460,
-    reachFactory:1450,
-    dispactchChipsFactory:500, 
-    reachChipsRs1:250,
-    reachChipsRs2:250,
+    harvestAtFarm1:100000,
+    harvestAtFarm2:98000,
+    harvestAtFarm3:98000,
+    harvestAtFarm4:98000,
+    atDispatchFarm1:97000,
+    atDispatchFarm2:97000,
+    atDispatchFarm3:97000,
+    atDispatchFarm4:97000,
+    reachLc1:490000,
+    reachLc2:490000,
+    dispactchLc1:1460000,
+    dispactchLc2:1460000,
+    reachFactory:1450000,
+    dispactchChipsFactory:200000, 
+    reachChipsRs1:200000,
+    reachChipsRs2:200000,
     soldChipsPacketType1:100, //(grams)   
-    soldChipsPacketType2:200 //(grams)   
+    soldChipsPacketType2:200, //(grams)   
+    soldChipsPacketType3:500 //(grams)   
 }
 
 // out of 100
@@ -77,7 +61,28 @@ const oqs = {
     reachChipsRs1:95,
     reachChipsRs2:95,
     soldChipsPacketType1:94, //(grams)   
-    soldChipsPacketType2:94 //(grams)   
+    soldChipsPacketType2:94, //(grams)   
+    soldChipsPacketType3:94 //(grams)   
+}
+
+const chipsBatchDetails = {
+    potatoBatchId:0,
+    chipsDetail: {
+        flavor: 2,
+        texture: 0
+    },
+    processDetails: {
+        cookingTemperature: 90,
+        ingredients: [0, 1, 2, 4]
+    },
+    packagingDetails: {
+        packagingMaterial: 0,
+        packageSize: 0
+    },
+    totalPackets: 2000,
+    totalWeight: weight.dispactchChipsFactory,
+    productionDate: 0,
+    shelfLife: 6
 }
 
 module.exports = {potatobatchQuality,chipsBatchDetails, weight, oqs, maxCapacity}
