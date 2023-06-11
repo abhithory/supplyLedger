@@ -1,11 +1,123 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "./SupplyLedgerRegistrar.sol";
+import "./Farm.sol";
+import "./LocalCollector.sol";
+import "./RetailStore.sol";
+import "./Factory.sol";
+import "./Logistics.sol";
 
+contract RegistrarSupplyLedger is BaseLogisticsInterface, BaseEntityInterface {
+    struct Entity {
+        address contractAddr;
+        bool status;
+    }
 
-    // SupplyLedgerRegistrar,
+    enum EntityType {
+        Farm,
+        LC,
+        Factory,
+        RS,
+        Logistics
+    }
+    mapping(address => Entity) public farmStatus;
+    mapping(address => Entity) public lCStatus;
+    mapping(address => Entity) public rSStatus;
+    mapping(address => Entity) public factoryStatus;
+    mapping(address => Entity) public logisticStatus;
+    
+
+    address public admin;
+
+    constructor(address _ad) {
+        admin = _ad;
+    }
+
+    modifier onlyAdmin() {
+        require(admin == msg.sender, "Only admin can call this function");
+        _; // Continue executing the function body
+    }
+
+    modifier onlyFarm() {
+        require(
+            farmStatus[msg.sender].status,
+            "Only the registered farm can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    modifier onlyLC() {
+        require(
+            lCStatus[msg.sender].status,
+            "Only the registered local collector can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    modifier onlyFactory() {
+        require(
+            factoryStatus[msg.sender].status,
+            "Only the registered Factory can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    modifier onlyRS() {
+        require(
+            rSStatus[msg.sender].status,
+            "Only the registered Retail store can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    modifier onlyLogistic() {
+        require(
+            logisticStatus[msg.sender].status,
+            "Only the registered Logistics can call"
+        );
+        _; // Continue executing the function body
+    }
+
+    // Registring entities
+    function registerFarm(address _owner, uint256 _maxCapacity) public {
+        require(!farmStatus[msg.sender].status, "Farm already registred");
+        Farm _farm = new Farm(_owner, _maxCapacity);
+        farmStatus[_owner] = Entity(address(_farm), true);
+    }
+
+    function registerLC(address _owner, uint256 _maxCapacity) public {
+        require(!lCStatus[msg.sender].status, "Farm already registred");
+        LocalCollector _LocalCollector = new LocalCollector(
+            _owner,
+            _maxCapacity
+        );
+        lCStatus[_owner] = Entity(address(_LocalCollector), true);
+    }
+
+    function registerRS(address _owner, uint256 _maxCapacity) public {
+        require(!rSStatus[msg.sender].status, "Farm already registred");
+        RetailStore _RetailStore = new RetailStore(_owner, _maxCapacity);
+        rSStatus[_owner] = Entity(address(_RetailStore), true);
+    }
+
+    function registerFactory(address _owner, uint256 _maxCapacity) public {
+        require(!factoryStatus[msg.sender].status, "Factory already registred");
+        Factory _Factory = new Factory(_owner, _maxCapacity);
+        factoryStatus[_owner] = Entity(address(_Factory), true);
+    }
+
+    function registerLogistics(address _owner, uint256 _maxCapacity) public {
+        require(
+            !logisticStatus[msg.sender].status,
+            "Logistics already registred"
+        );
+        Logistics _Logistics = new Logistics(_owner, _maxCapacity);
+        logisticStatus[_owner] = Entity(address(_Logistics), true);
+    }
+}
+
 contract SupplyLedger is
+    RegistrarSupplyLedger,
     FactoryInterface,
     FarmInterface
 {
@@ -31,28 +143,13 @@ contract SupplyLedger is
     uint256 public chipsPacketId;
     mapping(uint256 => uint256) public chipsPacketBatchRelationIdOf;
 
-    SupplyLedgerRegistrar supplyLedgerRegistrar;
-
-    constructor(address admin) {
-        supplyLedgerRegistrar = SupplyLedgerRegistrar(admin);
-    }
-
-
-
-    modifier onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType _et) {
-        require(
-            supplyLedgerRegistrar.getEntityDetails(_et, msg.sender).status,
-            "Only the respective Entity can call"
-        );
-        _;
-    }
-
+    constructor(address admin) RegistrarSupplyLedger(admin) {}
 
     function addPotatoBatchAtFarm(
         BatchQuality memory _bq,
         uint256 _oqc,
         uint256 _weight
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Farm)  {
+    ) public onlyFarm {
         potatBatchRelationOf[potatoBatchRelationId] = PotatoBatchRelation(
             potatoBatchRelationId,
             "Potato Batch 001",
@@ -61,7 +158,7 @@ contract SupplyLedger is
             address(0)
         );
 
-        Farm _farm = Farm(supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Farm, msg.sender).contractAddr);
+        Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
         _farm.potatoBatchCollectedAtFarm(
             potatoBatchRelationId,
             _bq,
@@ -79,25 +176,25 @@ contract SupplyLedger is
         uint256 _oqc,
         uint256 _weight,
         address _logisticsAddr
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Farm) {
+    ) public onlyFarm {
         potatBatchRelationOf[_potatoBatchRelationId]
             .localCollector = _localColloctor;
 
         Logistics _logi = Logistics(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,_logisticsAddr).contractAddr
+            logisticStatus[_logisticsAddr].contractAddr
         );
 
         // uint256 _shipmentId1 = _logi.shipmentId();
         uint256 _shipmentId = _logi.createShipment(
             _potatoBatchRelationId,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Farm,msg.sender).contractAddr,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.LC,_localColloctor).contractAddr
+            farmStatus[msg.sender].contractAddr,
+            lCStatus[_localColloctor].contractAddr
         );
-        Farm _farm = Farm(supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Farm,msg.sender).contractAddr);
+        Farm _farm = Farm(farmStatus[msg.sender].contractAddr);
         _farm.potatoBatchDispatchedFromFarm(
             _potatoBatchRelationId,
             _shipmentId,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,_logisticsAddr).contractAddr,
+            logisticStatus[_logisticsAddr].contractAddr,
             _oqc,
             _weight
         );
@@ -109,9 +206,9 @@ contract SupplyLedger is
     )
         public
         // uint256 _weight
-        onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Logistics)
+        onlyLogistic
     {
-        Logistics _logi = Logistics(supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,msg.sender).contractAddr);
+        Logistics _logi = Logistics(logisticStatus[msg.sender].contractAddr);
         _logi.updateShipmentStatus(_shipmentId, _status);
         // _logi.requestUpdateStaus(_shipmentId);
     }
@@ -121,9 +218,9 @@ contract SupplyLedger is
         uint256 _potatoBatchRelationId,
         uint256 _oqs,
         uint256 _weight
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.LC) {
+    ) public onlyLC {
         LocalCollector _localCollector = LocalCollector(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.LC,msg.sender).contractAddr
+            lCStatus[msg.sender].contractAddr
         );
         _localCollector.potatoBatchStoredAtLC(
             _potatoBatchRelationId,
@@ -139,25 +236,25 @@ contract SupplyLedger is
         uint256 _oqs,
         uint256 _weight,
         address _logisticsAddr
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.LC) {
+    ) public onlyLC {
         potatBatchRelationOf[_potatoBatchRelationId].factory = _factory;
 
         LocalCollector _localCollector = LocalCollector(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.LC,msg.sender).contractAddr
+            lCStatus[msg.sender].contractAddr
         );
 
         Logistics _logi = Logistics(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,_logisticsAddr).contractAddr
+            logisticStatus[_logisticsAddr].contractAddr
         );
         uint256 _shipmentId = _logi.createShipment(
             _potatoBatchRelationId,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.LC,msg.sender).contractAddr,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Factory,_factory).contractAddr
+            lCStatus[msg.sender].contractAddr,
+            factoryStatus[_factory].contractAddr
         );
         _localCollector.dispatchPotatoBatchToFactory(
             _potatoBatchRelationId,
             _shipmentId,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,_logisticsAddr).contractAddr,
+            logisticStatus[_logisticsAddr].contractAddr,
             _oqs,
             _weight
         );
@@ -167,13 +264,13 @@ contract SupplyLedger is
         uint256 _potatoBatchRelationId,
         uint256 _oqs,
         uint256 _weight
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory) {
+    ) public onlyFactory {
         // require(
         //     potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
         //     "Factory is not correct"
         // );
 
-        Factory _Factory = Factory(supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Factory,msg.sender).contractAddr);
+        Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
         _Factory.potatoBatchStoredAtFactory(
             _potatoBatchRelationId,
             _oqs,
@@ -184,13 +281,13 @@ contract SupplyLedger is
     function chipsPreparedAtFactory(
         uint256 _potatoBatchRelationId,
         ChipsPacketBatch memory _details
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory) {
+    ) public onlyFactory {
         // require(
         //     potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
         //     "Factory is not correct"
         // );
 
-        Factory _Factory = Factory(supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Factory,msg.sender).contractAddr);
+        Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
         _Factory.chipsBatchPrepared(chipsPacketBatchRelationId, _details);
 
         chipsPacketBatchRelationsOf[chipsPacketBatchRelationId]
@@ -204,7 +301,7 @@ contract SupplyLedger is
         uint256 _ww,
         uint256 _oqc,
         address _logisticsAddr
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory) {
+    ) public onlyFactory {
         // require(
         //     potatBatchRelationOf[_chipsPacketBatchRelationId].factory ==
         //         msg.sender,
@@ -215,20 +312,20 @@ contract SupplyLedger is
             .retailStore = _rs;
 
         Logistics _logi = Logistics(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,_logisticsAddr).contractAddr
+            logisticStatus[_logisticsAddr].contractAddr
         );
         uint256 _shipmentId = _logi.createShipment(
             _chipsPacketBatchRelationId,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Factory,msg.sender).contractAddr,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.RS,_rs).contractAddr
+            factoryStatus[msg.sender].contractAddr,
+            rSStatus[_rs].contractAddr
         );
 
-        Factory _Factory = Factory(supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Factory,msg.sender).contractAddr);
+        Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
 
         _Factory.dispactchChipsPacketBatchToRS(
             _chipsPacketBatchRelationId,
             _shipmentId,
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.Logistics,_logisticsAddr).contractAddr,
+            logisticStatus[_logisticsAddr].contractAddr,
             _ww,
             _oqc
         );
@@ -238,7 +335,7 @@ contract SupplyLedger is
     function chipsPacketStoredAtRs(
         uint256 _batchDetailsId,
         uint256 _weight
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.RS) {
+    ) public onlyRS {
         // require(
         //     chipsPacketBatchRelationsOf[_batchDetailsId].retailStore ==
         //         msg.sender,
@@ -246,7 +343,7 @@ contract SupplyLedger is
         // );
 
         RetailStore _retailStore = RetailStore(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.RS,msg.sender).contractAddr
+            rSStatus[msg.sender].contractAddr
         );
 
         _retailStore.chipsBatchStoredAtRS(_batchDetailsId, _weight);
@@ -255,7 +352,7 @@ contract SupplyLedger is
     function chipsPacketSold(
         uint256 _chipsPacketBatchRelationId,
         uint256 _packetWeight
-    ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.RS) {
+    ) public onlyRS {
         // require(
         //     chipsPacketBatchRelationsOf[_chipsPacketBatchRelationId]
         //         .retailStore == msg.sender,
@@ -263,7 +360,7 @@ contract SupplyLedger is
         // );
 
         RetailStore _retailStore = RetailStore(
-            supplyLedgerRegistrar.getEntityDetails(SupplyLedgerRegistrar.EntityType.RS,msg.sender).contractAddr
+            rSStatus[msg.sender].contractAddr
         );
 
         chipsPacketBatchRelationIdOf[
