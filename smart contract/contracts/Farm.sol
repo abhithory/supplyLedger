@@ -50,9 +50,10 @@ contract Farm is BaseEntityContract, FarmInterface {
     mapping(uint256 => FarmPotatoBatchDetail) public farmPotatoBatchDetailOf;
 
     constructor(
+        address _sl,
         address _owner,
         uint256 _maxPotatoBatchCapacity
-    ) BaseEntityContract(_owner, msg.sender, _maxPotatoBatchCapacity) {}
+    ) BaseEntityContract(_owner, _sl, _maxPotatoBatchCapacity) {}
 
     function potatoBatchCollectedAtFarm(
         uint256 _potatoBatchId,

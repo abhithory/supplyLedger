@@ -20,9 +20,10 @@ contract RetailStore is
     mapping(uint256 => uint256) public chipsWeightSoldFromBatchId;
 
     constructor(
+                address _sl,
         address _owner,
         uint256 _maxCapacity
-    ) BaseEntityContract(_owner, msg.sender, _maxCapacity) {}
+    ) BaseEntityContract(_owner, _sl, _maxCapacity) {}
 
     function chipsBatchStoredAtRS(
         uint256 _batchDetailsId,

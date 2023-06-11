@@ -38,7 +38,7 @@ const maxCapacity = {
 
 // all in kg except chipsPacket
 const weight = {
-    harvestAtFarm1:98,
+    harvestAtFarm1:100,
     harvestAtFarm2:98,
     harvestAtFarm3:98,
     harvestAtFarm4:98,

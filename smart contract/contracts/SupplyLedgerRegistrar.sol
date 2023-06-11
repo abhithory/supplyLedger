@@ -21,9 +21,11 @@ contract SupplyLedgerRegistrar {
     }
     mapping(EntityType => mapping(address => Entity)) public entityDetails;
     address public admin;
+    address public supplyLedgerContractAddr;
 
-    constructor(address _ad) {
-        admin = _ad;
+    constructor(address _sl) {
+        admin = msg.sender;
+        supplyLedgerContractAddr = _sl;
     }
 
     modifier onlyAdmin() {
@@ -43,22 +45,23 @@ contract SupplyLedgerRegistrar {
         );
         address _entityAddress;
         if (_et == EntityType.Farm) {
-            Farm _farm = new Farm(_admin, _maxCapacity);
+            Farm _farm = new Farm(supplyLedgerContractAddr,_admin, _maxCapacity);
             _entityAddress = address(_farm);
         } else if (_et == EntityType.LC) {
             LocalCollector _LocalCollector = new LocalCollector(
+                supplyLedgerContractAddr,
                 _admin,
                 _maxCapacity
             );
             _entityAddress = address(_LocalCollector);
         } else if (_et == EntityType.Factory) {
-            Factory _Factory = new Factory(_admin, _maxCapacity,_maxChipsPacketBatchCapacity);
+            Factory _Factory = new Factory(supplyLedgerContractAddr,_admin, _maxCapacity,_maxChipsPacketBatchCapacity);
             _entityAddress = address(_Factory);
         } else if (_et == EntityType.RS) {
-            RetailStore _RetailStore = new RetailStore(_admin, _maxCapacity);
+            RetailStore _RetailStore = new RetailStore(supplyLedgerContractAddr,_admin, _maxCapacity);
             _entityAddress = address(_RetailStore);
         } else if (_et == EntityType.Logistics) {
-            Logistics _Logistics = new Logistics(_admin, _maxCapacity);
+            Logistics _Logistics = new Logistics(supplyLedgerContractAddr,_admin, _maxCapacity);
             _entityAddress = address(_Logistics);
         }
         entityDetails[_et][_admin] = Entity(_entityAddress, true);

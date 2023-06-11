@@ -78,10 +78,11 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
     uint256 public currentChipsPacketBatchAllocation; // kg * 1000
 
     constructor(
+                address _sl,
         address _owner,
         uint256 _maxPotatoBatchCapacity,
         uint256 _maxChipsPacketBatchCapacity
-    ) BaseEntityContract(_owner, msg.sender, _maxPotatoBatchCapacity) {
+    ) BaseEntityContract(_owner, _sl, _maxPotatoBatchCapacity) {
         maxChipsPacketBatchCapacity = _maxChipsPacketBatchCapacity;
     }
 

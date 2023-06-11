@@ -8,9 +8,10 @@ contract LocalCollector is BaseEntityContract, BaseEntityInterface {
     mapping(uint256 => BatchDetail) public DispatchedBatchDetails; // potatobatchesLC => details
 
     constructor(
+        address _sl,
         address _owner,
         uint256 _maxPotatoBatchCapacity
-    ) BaseEntityContract(_owner, msg.sender, _maxPotatoBatchCapacity) {}
+    ) BaseEntityContract(_owner, _sl, _maxPotatoBatchCapacity) {}
 
     function potatoBatchStoredAtLC(
         uint256 _potatoBatchId,

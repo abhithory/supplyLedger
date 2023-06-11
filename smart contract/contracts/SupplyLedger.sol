@@ -33,8 +33,16 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         uint256 indexed SoldChipsPacketId
     );
 
+    address public admin;
+
     constructor(SupplyLedgerRegistrar _supplyLedgerRegistrar) {
         supplyLedgerRegistrar = _supplyLedgerRegistrar;
+        admin = msg.sender;
+    }
+
+    modifier onlyAdmin() {
+        require(admin == msg.sender, "Only admin can call this function");
+        _;
     }
 
     modifier onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType _et) {
@@ -57,7 +65,6 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         );
         _;
     }
-
 
     function addPotatoBatchAtFarm(
         BatchQuality memory _bq,
@@ -91,7 +98,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Farm)
         onlyValidPotatoBatchId(_potatoBatchId)
     {
-        require(msg.sender == potatBatchRelationOf[_potatoBatchId].farm, "Only the Original Farm can call");
+        require(
+            msg.sender == potatBatchRelationOf[_potatoBatchId].farm,
+            "Only the Original Farm can call"
+        );
 
         potatBatchRelationOf[_potatoBatchId].localCollector = _localColloctor;
 
@@ -171,7 +181,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.LC)
         onlyValidPotatoBatchId(_potatoBatchId)
     {
-        require(msg.sender == potatBatchRelationOf[_potatoBatchId].localCollector, "Only the Original Local Collector can call");
+        require(
+            msg.sender == potatBatchRelationOf[_potatoBatchId].localCollector,
+            "Only the Original Local Collector can call"
+        );
 
         LocalCollector _localCollector = LocalCollector(
             supplyLedgerRegistrar
@@ -196,7 +209,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.LC)
         onlyValidPotatoBatchId(_potatoBatchId)
     {
-        require(msg.sender == potatBatchRelationOf[_potatoBatchId].localCollector, "Only the Original Local Collector can call");
+        require(
+            msg.sender == potatBatchRelationOf[_potatoBatchId].localCollector,
+            "Only the Original Local Collector can call"
+        );
 
         potatBatchRelationOf[_potatoBatchId].factory = _factory;
 
@@ -255,7 +271,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory)
         onlyValidPotatoBatchId(_potatoBatchId)
     {
-        require(msg.sender == potatBatchRelationOf[_potatoBatchId].factory, "Only the Original Factory can call");
+        require(
+            msg.sender == potatBatchRelationOf[_potatoBatchId].factory,
+            "Only the Original Factory can call"
+        );
         Factory _Factory = Factory(
             supplyLedgerRegistrar
                 .getEntityDetails(
@@ -271,8 +290,10 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         uint256 _potatoBatchId,
         ChipsPacketBatch memory _details
     ) public onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory) {
-        require(msg.sender == potatBatchRelationOf[_potatoBatchId].factory, "Only the Original Factory can call");
-
+        require(
+            msg.sender == potatBatchRelationOf[_potatoBatchId].factory,
+            "Only the Original Factory can call"
+        );
 
         Factory _Factory = Factory(
             supplyLedgerRegistrar
@@ -300,7 +321,14 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.Factory)
         onlyValidChipsPacketBatchId(_chipsPacketBatchId)
     {
-        require(msg.sender == potatBatchRelationOf[chipsPacketBatchRelationsOf[_chipsPacketBatchId].potatosRelativeId].factory, "Only the Original Factory can call");
+        require(
+            msg.sender ==
+                potatBatchRelationOf[
+                    chipsPacketBatchRelationsOf[_chipsPacketBatchId]
+                        .potatosRelativeId
+                ].factory,
+            "Only the Original Factory can call"
+        );
 
         chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore = _rs;
 
@@ -356,7 +384,11 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.RS)
         onlyValidChipsPacketBatchId(_chipsPacketBatchId)
     {
-        require(msg.sender == chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore, "Only the Original Retail Store can call");
+        require(
+            msg.sender ==
+                chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore,
+            "Only the Original Retail Store can call"
+        );
 
         RetailStore _retailStore = RetailStore(
             supplyLedgerRegistrar
@@ -378,7 +410,11 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         onlyRespectiveEntity(SupplyLedgerRegistrar.EntityType.RS)
         onlyValidChipsPacketBatchId(_chipsPacketBatchId)
     {
-        require(msg.sender == chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore, "Only the Original Retail Store can call");
+        require(
+            msg.sender ==
+                chipsPacketBatchRelationsOf[_chipsPacketBatchId].retailStore,
+            "Only the Original Retail Store can call"
+        );
         RetailStore _retailStore = RetailStore(
             supplyLedgerRegistrar
                 .getEntityDetails(
@@ -392,5 +428,11 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
         _retailStore.chipsPacketSold(_id, _chipsPacketBatchId, _packetSize);
         emit ChipsPacketSold(msg.sender, _id);
         chipsPacketId++;
+    }
+
+    function updateSupplyLedgerRegistar(
+        SupplyLedgerRegistrar _supplyLedgerRegistrar
+    ) public onlyAdmin {
+        supplyLedgerRegistrar = _supplyLedgerRegistrar;
     }
 }
