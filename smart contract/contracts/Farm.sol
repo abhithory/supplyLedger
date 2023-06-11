@@ -51,8 +51,8 @@ contract Farm is BaseEntityContract, FarmInterface {
 
     constructor(
         address _owner,
-        uint256 _maxCapacity
-    ) BaseEntityContract(_owner, msg.sender, _maxCapacity) {}
+        uint256 _maxPotatoBatchCapacity
+    ) BaseEntityContract(_owner, msg.sender, _maxPotatoBatchCapacity) {}
 
     function potatoBatchCollectedAtFarm(
         uint256 _potatoBatchDetails,
@@ -60,7 +60,6 @@ contract Farm is BaseEntityContract, FarmInterface {
         uint256 _weight,
         uint256 _oqs
     ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
-        currentAllocation += _weight;
         farmPotatoBatchDetailOf[_potatoBatchDetails].harvestBatchQuality = _qq;
         farmPotatoBatchDetailOf[_potatoBatchDetails]
             .harvestBatchWeight = _weight;
@@ -76,7 +75,6 @@ contract Farm is BaseEntityContract, FarmInterface {
         uint256 _oqs,
         uint256 _weight
     ) public onlyRegistrar isMinCapacityAvailable(_weight) {
-        currentAllocation -= _weight;
         farmPotatoBatchDetailOf[_potatoBatchRelationId]
             .logisticId = _logisticId;
         farmPotatoBatchDetailOf[_potatoBatchRelationId]

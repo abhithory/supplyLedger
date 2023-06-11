@@ -22,21 +22,26 @@ contract BaseEntityContract {
     address public admin;
     address public registrar;
     // string public name;
-    uint256 public maxCapacity; //kg
-    uint256 public currentAllocation; //kg
+    uint256 public maxCapacity; // kg * 1000
+    uint256 public currentAllocation; // //kg * 1000
 
-    modifier isMaxCapacityNotExceeded(uint256 quantityToAdd) {
+    modifier isMaxCapacityNotExceeded(uint256 weightToAdd) {
+        require(weightToAdd > 0, "Weight can't be zero");
         require(
-            currentAllocation + quantityToAdd <= maxCapacity,
+            currentAllocation + weightToAdd <=
+                maxCapacity,
             "Max capacity exceeded."
         );
+        currentAllocation += weightToAdd;
         _;
     }
-    modifier isMinCapacityAvailable(uint256 quantityToDispatch) {
+    modifier isMinCapacityAvailable(uint256 weightToDispatch) {
+        require(weightToDispatch > 0, "Weight can't be zero");
         require(
-            currentAllocation >= quantityToDispatch,
+            currentAllocation >= weightToDispatch,
             "Insufficient capacity."
         );
+        currentAllocation -= weightToDispatch;
         _;
     }
 
@@ -45,7 +50,11 @@ contract BaseEntityContract {
         _;
     }
 
-    constructor(address _admin, address _registrar, uint256 _maxCapacity) {
+    constructor(
+        address _admin,
+        address _registrar,
+        uint256 _maxCapacity
+    ) {
         admin = _admin;
         registrar = _registrar;
         maxCapacity = _maxCapacity;

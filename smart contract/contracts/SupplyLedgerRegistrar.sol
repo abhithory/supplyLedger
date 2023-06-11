@@ -34,7 +34,8 @@ contract SupplyLedgerRegistrar {
     function registerEntity(
         EntityType _et,
         address _owner,
-        uint256 _maxCapacity
+        uint256 _maxCapacity,
+        uint256 _maxChipsPacketBatchCapacity
     ) public onlyAdmin {
         require(
             !entityDetails[_et][msg.sender].status,
@@ -51,7 +52,7 @@ contract SupplyLedgerRegistrar {
             );
             _entityAddress = address(_LocalCollector);
         } else if (_et == EntityType.Factory) {
-            Factory _Factory = new Factory(_owner, _maxCapacity);
+            Factory _Factory = new Factory(_owner, _maxCapacity,_maxChipsPacketBatchCapacity);
             _entityAddress = address(_Factory);
         } else if (_et == EntityType.RS) {
             RetailStore _RetailStore = new RetailStore(_owner, _maxCapacity);
