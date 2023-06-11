@@ -1,13 +1,12 @@
 const addressObj = {
-    supplyLedgerRegistrar: '0x30F98Dc1FBc276215A80379757eC307663E580Dc',
-    supplyLedger: '0x1dCA6F33F989c6625bb3d9F2494Ff2b058F799Dc',
-    farm: '0x851F357626d2D1A1bfE42DF6B45c6eeA9396F051',
-    lc: '0xaDE0b9D288f042031Df7e9704ba2BE6df053AeA8',
-    factory: '0x4f48b5d4B344f4AFe5422A434C7d9FE90B32eB9F',
-    rs: '0xac386136a13b4A4c89a456299a5F98732A97bD84',
-    logistics: '0x7Ed97F231E5bc65518107Fb4AFef048Faa7bc89B'
+    supplyLedgerRegistrar: '0x425A28702225040ABb58C631459b8d9ef33c6a98',
+    supplyLedger: '0x196e48BeB3743af6Baf3886c3D8B7979c0d27a5E',
+    farm: '0x5c450d7772dF69ED2b791bEdEc6601e5192809f6',
+    lc: '0x2B3320Db27c20339f46b4ecD55d09Af804674799',
+    factory: '0xb646Da6f53421De0e3bb48A38cE3Ed6482BC18F5',
+    rs: '0x3eA100F703aC8A157096D5577496d59f5a894950',
+    logistics: '0xb1D0E909a8d54532909f2D265a2C9541C6774eB7'
   }
-
 class SupplyLedgerRegistrarContract {
     constructor(_admin) {
         this.admin = _admin;
@@ -56,17 +55,17 @@ class SupplyLedgerContract {
         return true
     }
 
-    // async getPotatoBatchRelationId() {
-    //     return Number(await this.contract.potatoBatchRelationId());
-    // }
+    async chipsPacketBatchIdOf(chipsPacketId) {
+        return Number(await this.contract.potatoBatchRelationId(chipsPacketId));
+    }
 
-    // async getChipsPacketBatchRelationId() {
-    //     return Number(await this.contract.chipsPacketBatchRelationId());
-    // }
+    async chipsPacketBatchRelationsOf(potatosRelativeId) {
+        return Number(await this.contract.chipsPacketBatchRelationId(potatosRelativeId));
+    }
 
-    // async getChipsPacketId() {
-    //     return Number(await this.contract.chipsPacketId());
-    // }
+    async getChipsPacketId(potatoBatchRelationId) {
+        return Number(await this.contract.potatBatchRelationOf(potatoBatchRelationId));
+    }
 
     async updateSupplyLedgerRegistar(adminSigner, _supplyLedgerRegistrarAddr) {
         const tx = await this.contract.connect(adminSigner).updateSupplyLedgerRegistar(_supplyLedgerRegistrarAddr);
@@ -195,6 +194,24 @@ class FactoryContract {
     }
 }
 
+
+class RetailStoreContract {
+    constructor(_addr) {
+        this.contract_address = _addr;
+        this.contract = null;
+    }
+
+    async connectContract() {
+        const Factory = await ethers.getContractFactory("Factory");
+        this.contract = Factory.attach(this.contract_address);
+    }
+
+    async DispatchedChipsPacketBatchDetails(_potatoBatchRelationId) {
+        return await this.contract.DispatchedChipsPacketBatchDetails(_potatoBatchRelationId);
+    }
+}
+
+
 class LogisticsContract {
     constructor(_addr) {
         this.contract_address = _addr;
@@ -211,4 +228,4 @@ class LogisticsContract {
     }
 }
 
-module.exports = { addressObj, SupplyLedgerRegistrarContract, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }
+module.exports = { addressObj, SupplyLedgerRegistrarContract, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract,RetailStoreContract, LogisticsContract }

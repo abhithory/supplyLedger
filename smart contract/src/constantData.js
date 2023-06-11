@@ -11,12 +11,12 @@ const potatobatchQuality = {
 
 //  weight - kg * 1000
 const maxCapacity = {
-    farm: 500000, // potato
-    lc:1500000, // potato
-    factory:3000000, // potato
-    factoryChips:2000000, // potato
-    rs:250000, //chips
-    logistics: 3000000
+    farm: 5000000, // potato
+    lc:150000000, // potato
+    factory:30000000, // potato
+    factoryChips:20000000, // chips
+    rs:15000000, //chips
+    logistics: 30000000,
 }
 
 // all in kg except chipsPacket
