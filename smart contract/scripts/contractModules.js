@@ -1,11 +1,11 @@
 const addressObj = {
-    supplyLedgerRegistrar: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-    supplyLedger: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    farm: '0xCafac3dD18aC6c6e92c921884f9E4176737C052c',
-    lc: '0x9f1ac54BEF0DD2f6f3462EA0fa94fC62300d3a8e',
-    factory: '0x93b6BDa6a0813D808d75aA42e900664Ceb868bcF',
-    rs: '0xA22D78bc37cE77FeE1c44F0C2C0d2524318570c3',
-    logistics: '0xbf9fBFf01664500A33080Da5d437028b07DFcC55'
+    supplyLedgerRegistrar: '0x30F98Dc1FBc276215A80379757eC307663E580Dc',
+    supplyLedger: '0x1dCA6F33F989c6625bb3d9F2494Ff2b058F799Dc',
+    farm: '0x851F357626d2D1A1bfE42DF6B45c6eeA9396F051',
+    lc: '0xaDE0b9D288f042031Df7e9704ba2BE6df053AeA8',
+    factory: '0x4f48b5d4B344f4AFe5422A434C7d9FE90B32eB9F',
+    rs: '0xac386136a13b4A4c89a456299a5F98732A97bD84',
+    logistics: '0x7Ed97F231E5bc65518107Fb4AFef048Faa7bc89B'
   }
 
 class SupplyLedgerRegistrarContract {
@@ -28,10 +28,10 @@ class SupplyLedgerRegistrarContract {
         return true
     }
 
-    async registerEntity(entityType,_Addr,maxCapacity,maxChipsCapacity) {
-        const tx = await this.contract.registerEntity(entityType,_Addr,maxCapacity,maxChipsCapacity);
+    async registerEntity(entityType, _Addr, maxCapacity, maxChipsCapacity) {
+        const tx = await this.contract.registerEntity(entityType, _Addr, maxCapacity, maxChipsCapacity);
         await tx.wait()
-        return await this.contract.entityDetails(entityType,_Addr);
+        return await this.contract.entityDetails(entityType, _Addr);
     }
 
 
@@ -56,17 +56,17 @@ class SupplyLedgerContract {
         return true
     }
 
-    async getPotatoBatchRelationId() {
-        return Number(await this.contract.potatoBatchRelationId());
-    }
+    // async getPotatoBatchRelationId() {
+    //     return Number(await this.contract.potatoBatchRelationId());
+    // }
 
-    async getChipsPacketBatchRelationId() {
-        return Number(await this.contract.chipsPacketBatchRelationId());
-    }
+    // async getChipsPacketBatchRelationId() {
+    //     return Number(await this.contract.chipsPacketBatchRelationId());
+    // }
 
-    async getChipsPacketId() {
-        return Number(await this.contract.chipsPacketId());
-    }
+    // async getChipsPacketId() {
+    //     return Number(await this.contract.chipsPacketId());
+    // }
 
     async updateSupplyLedgerRegistar(adminSigner, _supplyLedgerRegistrarAddr) {
         const tx = await this.contract.connect(adminSigner).updateSupplyLedgerRegistar(_supplyLedgerRegistrarAddr);
@@ -76,8 +76,10 @@ class SupplyLedgerContract {
 
     async addPotatoBatchAtFarm(farmSigner, potatobatchQuality, oqsFarm, weightFarm) {
         const tx = await this.contract.connect(farmSigner).addPotatoBatchAtFarm(potatobatchQuality, oqsFarm, weightFarm);
-        await tx.wait();
-        return true;
+        const txData = await tx.wait();
+        // console.log(txData);
+        return Number(txData.events[0].args.CreatedPotatoBatchId);
+
     }
 
     async dispatchPotatoBatchToLC(farmSigner, _potatoBatchRelationId, lcAddr, oqsDispatchFarm, weightDispatchFarm, logisticsAddr) {
@@ -116,29 +118,30 @@ class SupplyLedgerContract {
         return true;
     }
 
-    async chipsPreparedAtFactory(factorySigner, potatoBatchRelationId, chipsBatchDetails) {
-        const tx = await this.contract.connect(factorySigner).chipsPreparedAtFactory(potatoBatchRelationId, chipsBatchDetails);
-        await tx.wait();
+    async chipsPreparedAtFactory(factorySigner, chipsBatchDetails) {
+        const tx = await this.contract.connect(factorySigner).chipsPreparedAtFactory(chipsBatchDetails);
+        const txData = await tx.wait();
 
-        return true;
+        return Number(txData.events[0].args.PreparedChipsPacketBatchId)
+
     }
 
-    async chipsPacketBatchDispatchedToRS(factorySigner, chipsPacketBatchRelationId, rsAddr, weightDispatchFactory, logisticsAddr) {
-        const tx = await this.contract.connect(factorySigner).chipsPacketBatchDispatchedToRS(chipsPacketBatchRelationId, rsAddr, weightDispatchFactory, logisticsAddr);
-        await tx.wait();
-        return true;
-    }
-
-    async chipsPacketStoredAtRs(rsSigner, chipsPacketBatchRelationId, weightReachRs) {
-        const tx = await this.contract.connect(rsSigner).chipsPacketStoredAtRs(chipsPacketBatchRelationId, weightReachRs);
+    async chipsPacketBatchDispatchedToRS(factorySigner, chipsPacketBatchRelationId, rsAddr, oqs, weightDispatchFactory, logisticsAddr) {
+        const tx = await this.contract.connect(factorySigner).chipsPacketBatchDispatchedToRS(chipsPacketBatchRelationId, rsAddr, oqs, weightDispatchFactory, logisticsAddr);
         await tx.wait();
         return true;
     }
 
-    async chipsPacketSold(rsSigner, chipsPacketBatchRelationId, soldPacketWeight) {
-        const tx = await this.contract.connect(rsSigner).chipsPacketSold(chipsPacketBatchRelationId, soldPacketWeight);
+    async chipsPacketStoredAtRs(rsSigner, chipsPacketBatchRelationId, oqs, weightReachRs) {
+        const tx = await this.contract.connect(rsSigner).chipsPacketStoredAtRs(chipsPacketBatchRelationId, oqs, weightReachRs);
         await tx.wait();
         return true;
+    }
+
+    async chipsPacketSold(rsSigner, chipsPacketBatchRelationId, size) {
+        const tx = await this.contract.connect(rsSigner).chipsPacketSold(chipsPacketBatchRelationId, size);
+        const txData = await tx.wait();
+        return Number(txData.events[0].args.SoldChipsPacketId);
     }
 
 }
@@ -187,8 +190,8 @@ class FactoryContract {
         this.contract = Factory.attach(this.contract_address);
     }
 
-    async DispatchedBatchDetails(_potatoBatchRelationId) {
-        return await this.contract.DispatchedBatchDetails(_potatoBatchRelationId);
+    async DispatchedChipsPacketBatchDetails(_potatoBatchRelationId) {
+        return await this.contract.DispatchedChipsPacketBatchDetails(_potatoBatchRelationId);
     }
 }
 
@@ -208,4 +211,4 @@ class LogisticsContract {
     }
 }
 
-module.exports = { addressObj,SupplyLedgerRegistrarContract, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }
+module.exports = { addressObj, SupplyLedgerRegistrarContract, SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract }

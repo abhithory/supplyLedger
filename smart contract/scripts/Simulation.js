@@ -1,6 +1,7 @@
 
 const { addressObj, SupplyLedgerRegistrarContract,SupplyLedgerContract, FarmContract, LocalCollectorContract, FactoryContract, LogisticsContract } = require('./contractModules.js');
 const { potatobatchQuality, chipsBatchDetails, weight, oqs } = require('../src/constantData.js');
+const { PackageSize } = require('../src/smartContractConstants.js');
 
 
 
@@ -44,16 +45,14 @@ async function main() {
     console.log(`retail stored is connected`);
 
 
-    potatoBatchRelationId = await supplyLedgerContract.getPotatoBatchRelationId()
-    await supplyLedgerContract.addPotatoBatchAtFarm(farm, potatobatchQuality, oqsFarm, weightFarm);
+    potatoBatchRelationId = await supplyLedgerContract.addPotatoBatchAtFarm(farm, potatobatchQuality, oqs.harvestAtFarm1, weight.harvestAtFarm1);
     console.log("potato batch added to farm with Id", potatoBatchRelationId);
 
-    await supplyLedgerContract.dispatchPotatoBatchToLC(farm, potatoBatchRelationId, localCollector.address, oqsDispatchFarm, weightDispatchFarm, logistics.address);
-
+    
+    await supplyLedgerContract.dispatchPotatoBatchToLC(farm, potatoBatchRelationId, localCollector.address,  oqs.atDispatchFarm1, weight.atDispatchFarm1, logistics.address);
     const dataFarm = await farmContract.farmPotatoBatchDetailOf(potatoBatchRelationId);
-    farmToLcLogisticsId = Number(dataFarm.logisticId)
+    farmToLcLogisticsId = Number(dataFarm.logisticId);
     console.log(`potato batch dispatched to local collector with logistics id: ${farmToLcLogisticsId}`);
-    // console.log(farmToLcLogisticsId);
     async function logisticSteps(_logisticId) {
         await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 1);
         console.log(`logistic id: ${_logisticId} status updated to: 1`);
@@ -63,43 +62,41 @@ async function main() {
         // console.log(`logistic id: ${_logisticId} status updated to: 3`);
         // await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 4);
         // console.log(`logistic id: ${_logisticId} status updated to: 4`);
-
-        await waitForSecs(10000)
+        
+        // await waitForSecs(10000)
         const _shipmentData = await logisticsContract.shipmentOf(_logisticId);
         console.log(_shipmentData);
     }
     await logisticSteps(farmToLcLogisticsId);
-
-    await supplyLedgerContract.potatoBatchStoredAtLC(localCollector, potatoBatchRelationId, oqsReachLC, weightReachLC)
+    
+    await supplyLedgerContract.potatoBatchStoredAtLC(localCollector, potatoBatchRelationId, oqs.reachLc1, weight.reachLc1)
     console.log(`potato batch stored at local collector`);
-
-
-
-    await supplyLedgerContract.dispatchPotatoBatchToFactory(localCollector, potatoBatchRelationId, factory.address, oqsDispatchLC, weightDispatchLC, logistics.address)
+    await supplyLedgerContract.dispatchPotatoBatchToFactory(localCollector, potatoBatchRelationId, factory.address, oqs.dispactchLc1, oqs.dispactchLc1, logistics.address)
     const dataLc = await lcContract.DispatchedBatchDetails(potatoBatchRelationId);
-    lcToFactoryLogisticsId = Number(dataLc.logisticId)
+    lcToFactoryLogisticsId = Number(dataLc.logisticId);
     console.log(`potato batch dispatched to factory with logistics id: ${lcToFactoryLogisticsId}`);
     await logisticSteps(lcToFactoryLogisticsId);
-
-    await supplyLedgerContract.potatoBatchStoredAtFactory(factory, potatoBatchRelationId, oqsDispatchLC, weightDispatchLC)
-    console.log(`chips packet batch stored at factory`);
-
-    chipsPacketBatchRelationId = await supplyLedgerContract.getChipsPacketBatchRelationId();
-    await supplyLedgerContract.chipsPreparedAtFactory(factory, potatoBatchRelationId, chipsBatchDetails);
+    
+    await supplyLedgerContract.potatoBatchStoredAtFactory(factory, potatoBatchRelationId, oqs.reachFactory, weight.reachFactory)
+    console.log(`Potato batch stored at factory`);
+    
+    chipsBatchDetails.potatoBatchId = potatoBatchRelationId
+    chipsPacketBatchRelationId = await supplyLedgerContract.chipsPreparedAtFactory(factory, chipsBatchDetails);
     console.log(`chips are prepared at factory with id: `, chipsPacketBatchRelationId);
-
-    await supplyLedgerContract.chipsPacketBatchDispatchedToRS(factory, chipsPacketBatchRelationId, retailStore.address, weightDispatchLC, logistics.address);
+    
+    await supplyLedgerContract.chipsPacketBatchDispatchedToRS(factory, chipsPacketBatchRelationId, retailStore.address, oqs.dispactchChipsFactory, weight.dispactchChipsFactory, logistics.address);
     console.log("chips batch dispatched");
-    const datafactory = await factoryContract.DispatchedBatchDetails(potatoBatchRelationId);
+
+    const datafactory = await factoryContract.DispatchedChipsPacketBatchDetails(potatoBatchRelationId);
     factoryToRsLogisticsId = Number(datafactory.logisticId)
     console.log(`with logistics id: ${factoryToRsLogisticsId}`);
     await logisticSteps(factoryToRsLogisticsId);
+    
 
-    await supplyLedgerContract.chipsPacketStoredAtRs(retailStore, chipsPacketBatchRelationId, weightDispatchLC);
+    await supplyLedgerContract.chipsPacketStoredAtRs(retailStore, chipsPacketBatchRelationId, oqs.reachChipsRs1, weight.reachChipsRs1);
     console.log(`chips packet stored in reatail store`);
 
-    const chipsPacketId = await supplyLedgerContract.getChipsPacketId()
-    await supplyLedgerContract.chipsPacketSold(retailStore, chipsPacketBatchRelationId, weightDispatchLC);
+    const chipsPacketId  = await supplyLedgerContract.chipsPacketSold(retailStore, chipsPacketBatchRelationId, PackageSize.Gram200);
     console.log(`chips packet sold of id: ${chipsPacketId}`);
 }
 
