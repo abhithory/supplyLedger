@@ -30,7 +30,7 @@ interface BaseLogisticsInterface {
         // uint256 timeAtStart;
         uint256 timeAtLoaded;
         uint256 timeAtDispatched;
-        uint256 weightAtArrived; 
+        uint256 weightAtArrived;
         uint256 timeAtArrived;
     }
 
@@ -41,61 +41,6 @@ interface BaseLogisticsInterface {
     //     string documentHash;
     // }
 }
-
-// with external apis
-// contract Logistics is BaseLogisticsInterface, BaseEntityContract {
-//     uint256 public shipmentId;
-//     mapping(uint256 => Shipment) public shipmentOf;
-
-//     constructor(address _owner) BaseEntityContract(_owner, msg.sender) {}
-
-//     function createShipment(
-//         uint256 _batchId,
-//         address _origin,
-//         address _destination
-//     ) public onlyRegistrar returns (uint256) {
-//         shipmentId++;
-//         shipmentOf[shipmentId] = Shipment(
-//             _batchId,
-//             ShipmentStatus.Loaded,
-//             _origin,
-//             _destination,
-//             block.timestamp,
-//             0,
-//             0,
-//             0,
-//             0
-//         );
-//         return shipmentId;
-//     }
-
-//     function updateShipmentStatus(
-//         uint256 _shipmentId,
-//         uint256 _status
-//     )
-//         public
-//         // uint256 _weight
-//         onlyRegistrar
-//     {
-//         require(_shipmentId <= shipmentId, "Invalid shipment ID");
-//         // shipmentOf[_shipmentId].status = _status;
-
-//         if (_status == 1) {
-//             shipmentOf[_shipmentId].timeAtLoaded = block.timestamp;
-//             shipmentOf[_shipmentId].status = ShipmentStatus.InTransit;
-//         } else {
-//             shipmentOf[_shipmentId].status = ShipmentStatus.Arrived;
-//             shipmentOf[_shipmentId].timeAtUnLoaded = block.timestamp;
-//             CommonEntity _entity = CommonEntity(
-//                 shipmentOf[_shipmentId].destination
-//             );
-//             _entity.receivedFromLogistic(
-//                 shipmentOf[_shipmentId].batchId,
-//                 _shipmentId
-//             );
-//         }
-//     }
-// }
 
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
@@ -118,8 +63,9 @@ contract Logistics is
     event ShipmentStatusUpdated(uint256 indexed _shipmentId, uint256 status);
 
     constructor(
-        address _owner
-    ) BaseEntityContract(_owner, msg.sender) ConfirmedOwner(msg.sender) {
+        address _owner,
+        uint256 _maxCapacity
+    ) BaseEntityContract(_owner, msg.sender,_maxCapacity) ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "53f9755920cd451a8fe46f5087468395";
@@ -238,9 +184,13 @@ contract Logistics is
         uint256 statusResponse,
         uint256 weightResponse
     ) public recordChainlinkFulfillment(requestId) {
-        shipmentOf[idResponse/100000].status = ShipmentStatus(statusResponse/100000);
-        shipmentOf[idResponse/100000].timeAtArrived = block.timestamp;
-        shipmentOf[idResponse/100000].weightAtArrived = weightResponse/100000;
+        shipmentOf[idResponse / 100000].status = ShipmentStatus(
+            statusResponse / 100000
+        );
+        shipmentOf[idResponse / 100000].timeAtArrived = block.timestamp;
+        shipmentOf[idResponse / 100000].weightAtArrived =
+            weightResponse /
+            100000;
     }
 
     // function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {

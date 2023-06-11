@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 import "./BaseEntityContract.sol";
 
-interface BaseFactoryInterface {
+interface FactoryInterface {
     enum Flavor {
         Barbecue,
         SourCreamAndOnion,
@@ -31,40 +31,32 @@ interface BaseFactoryInterface {
     }
 
     enum PackageSize {
-        Small,
-        Medium,
-        Large
+        Gram100,
+        Gram200,
+        Gram500
     }
 
     enum PackagingMaterial {
         PlasticBags,
         CardboardBoxes
     }
-
-    enum PackagingSize {
-        Garm100,
-        Gram200,
-        Gram500
-    }
-
     struct ChipsDetail {
         Flavor flavor;
         Texture texture;
-        // SpecialFeature[] specialFeatures;
     }
 
     struct ProcessDetails {
         uint256 cookingTemperature; // *C
         Ingredient[] ingredients;
-        // uint256 moistureContent;
     }
 
     struct PackagingDetails {
         PackagingMaterial packagingMaterial;
-        PackagingSize packageSize;
+        PackageSize packageSize;
     }
 
-    struct ChipsBatch {
+    struct ChipsPacketBatch {
+        uint256 potatoBatchId;
         ChipsDetail chipsDetail;
         ProcessDetails processDetails;
         PackagingDetails packagingDetails;
@@ -75,43 +67,50 @@ interface BaseFactoryInterface {
     }
 }
 
-contract Factory is BaseEntityContract, BaseFactoryInterface {
-    mapping(uint256 => ChipsBatch) public chipsBatchOf;
-    mapping(uint256 => PotatoBatchDetail) public ArrivedBatchDetails;
-    mapping(uint256 => ChipsBatchDetail) public DispatchedBatchDetails;
+contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
+    mapping(uint256 => ChipsPacketBatch) public chipsPacketBatchOf;
+    mapping(uint256 => BatchDetail) public ArrivedPotatoBatchDetails;
+    mapping(uint256 => BatchDetail) public DispatchedChipsPacketBatchDetails;
 
     constructor(
-        address _owner
-    ) BaseEntityContract( _owner, msg.sender) {}
+        address _owner,
+        uint256 _maxCapacity
+    ) BaseEntityContract( _owner, msg.sender, _maxCapacity) {}
 
     function potatoBatchStoredAtFactory(
         uint256 _batchDetailsId,
         uint256 _weight,
         uint256 _oqs
     ) public onlyRegistrar {
-        ArrivedBatchDetails[_batchDetailsId].weight = _weight;
-        ArrivedBatchDetails[_batchDetailsId].oqs = _oqs;
-        ArrivedBatchDetails[_batchDetailsId].time = block.timestamp;
+        ArrivedPotatoBatchDetails[_batchDetailsId].weight = _weight;
+        ArrivedPotatoBatchDetails[_batchDetailsId].oqs = _oqs;
+        ArrivedPotatoBatchDetails[_batchDetailsId].time = block.timestamp;
     }
 
-    function chipsPrepared(
-        uint256 chipsBatchId,
-        ChipsBatch memory _details
+
+    // TODO: check the pottao batch is already prepared or not/ is this factory has this potao batch??
+    function chipsBatchPrepared(
+        uint256 chipsPacketBatchId,
+        // uint256 _potatoBatchId,
+        ChipsPacketBatch memory _details
     ) public onlyRegistrar {
-        chipsBatchOf[chipsBatchId] = _details;
-        chipsBatchOf[chipsBatchId].productionDate = block.timestamp;
+        chipsPacketBatchOf[chipsPacketBatchId] = _details;
+        // chipsPacketBatchOf[chipsPacketBatchId].potatoBatchId = _potatoBatchId;
+        chipsPacketBatchOf[chipsPacketBatchId].productionDate = block.timestamp;
     }
 
-    function dispactchChipsBatchToRS(
-        uint256 _chipsPacketBatchRelationId,
+    function dispactchChipsPacketBatchToRS(
+        uint256 _chipsPacketBatchId,
         uint256 _logisticId,
         address _logisticContractAddr,
-        uint256 _weight
+        uint256 _weight,
+        uint256 _oqc
     ) public onlyRegistrar {
-        DispatchedBatchDetails[_chipsPacketBatchRelationId] = ChipsBatchDetail(
+        DispatchedChipsPacketBatchDetails[_chipsPacketBatchId] = BatchDetail(
             _logisticId,
             _logisticContractAddr,
             _weight,
+            _oqc,
             block.timestamp
         );
     }
@@ -120,24 +119,6 @@ contract Factory is BaseEntityContract, BaseFactoryInterface {
         uint256 _batchId,
         uint256 _logisticId
     ) public {
-        ArrivedBatchDetails[_batchId].logisticId = _logisticId;
-    }
-
-    function getChipsBatchFactoryProccessingDetails(
-        uint256 batchId
-    ) public view returns (ChipsBatch memory) {
-        return chipsBatchOf[batchId];
-    }
-
-    function getPotatoBatchArrivedDetail(
-        uint256 potatoBatchId
-    ) public view returns (PotatoBatchDetail memory) {
-        return ArrivedBatchDetails[potatoBatchId];
-    }
-
-    function getChipsBatchDispatchDetail(
-        uint256 chipsBatchId
-    ) public view returns (ChipsBatchDetail memory) {
-        return DispatchedBatchDetails[chipsBatchId];
+        ArrivedPotatoBatchDetails[_batchId].logisticId = _logisticId;
     }
 }

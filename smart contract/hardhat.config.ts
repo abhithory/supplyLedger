@@ -1,5 +1,5 @@
 require('dotenv').config();
-
+require("hardhat-contract-sizer");
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
@@ -10,8 +10,8 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         // allowUnlimitedContractSize: true,
-        enabled: true,
-        runs: 200
+        // enabled: true,
+        // runs: 200
       }
     }
   },
@@ -39,6 +39,13 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.POLYGONSCAN_API_KEY
+  },
+  contractSizer: {
+    // alphaSort: true,
+    // disambiguatePaths: false,
+    // runOnCompile: true,
+    // strict: true,
+    // only: [':ERC20$'],
   }
 };
 

@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-
 import "./Farm.sol";
 import "./LocalCollector.sol";
 import "./RetailStore.sol";
 import "./Factory.sol";
 import "./Logistics.sol";
 
-contract RegistrarSupplyLedger is
-    BaseLogisticsInterface,
-    BaseFactoryInterface,
-    BaseEntityInterface
-{
+contract RegistrarSupplyLedger is BaseLogisticsInterface, BaseEntityInterface {
     struct Entity {
         address contractAddr;
         bool status;
+    }
+
+    enum EntityType {
+        Farm,
+        LC,
+        Factory,
+        RS,
+        Logistics
     }
     mapping(address => Entity) public farmStatus;
     mapping(address => Entity) public lCStatus;
     mapping(address => Entity) public rSStatus;
     mapping(address => Entity) public factoryStatus;
     mapping(address => Entity) public logisticStatus;
+    
 
     address public admin;
 
@@ -75,41 +79,48 @@ contract RegistrarSupplyLedger is
     }
 
     // Registring entities
-    function registerFarm( address _owner) public {
+    function registerFarm(address _owner, uint256 _maxCapacity) public {
         require(!farmStatus[msg.sender].status, "Farm already registred");
-        Farm _farm = new Farm(_owner);
+        Farm _farm = new Farm(_owner, _maxCapacity);
         farmStatus[_owner] = Entity(address(_farm), true);
     }
 
-    function registerLC( address _owner) public {
+    function registerLC(address _owner, uint256 _maxCapacity) public {
         require(!lCStatus[msg.sender].status, "Farm already registred");
-        LocalCollector _LocalCollector = new LocalCollector(_owner);
+        LocalCollector _LocalCollector = new LocalCollector(
+            _owner,
+            _maxCapacity
+        );
         lCStatus[_owner] = Entity(address(_LocalCollector), true);
     }
 
-    function registerRS( address _owner) public {
+    function registerRS(address _owner, uint256 _maxCapacity) public {
         require(!rSStatus[msg.sender].status, "Farm already registred");
-        RetailStore _RetailStore = new RetailStore(_owner);
+        RetailStore _RetailStore = new RetailStore(_owner, _maxCapacity);
         rSStatus[_owner] = Entity(address(_RetailStore), true);
     }
 
-    function registerFactory( address _owner) public {
+    function registerFactory(address _owner, uint256 _maxCapacity) public {
         require(!factoryStatus[msg.sender].status, "Factory already registred");
-        Factory _Factory = new Factory(_owner);
+        Factory _Factory = new Factory(_owner, _maxCapacity);
         factoryStatus[_owner] = Entity(address(_Factory), true);
     }
 
-    function registerLogistics( address _owner) public {
+    function registerLogistics(address _owner, uint256 _maxCapacity) public {
         require(
             !logisticStatus[msg.sender].status,
             "Logistics already registred"
         );
-        Logistics _Logistics = new Logistics(_owner);
+        Logistics _Logistics = new Logistics(_owner, _maxCapacity);
         logisticStatus[_owner] = Entity(address(_Logistics), true);
     }
 }
 
-contract SupplyLedger is RegistrarSupplyLedger {
+contract SupplyLedger is
+    RegistrarSupplyLedger,
+    FactoryInterface,
+    FarmInterface
+{
     struct PotatoBatchRelation {
         uint256 id;
         string name;
@@ -183,7 +194,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
         _farm.potatoBatchDispatchedFromFarm(
             _potatoBatchRelationId,
             _shipmentId,
-           logisticStatus[_logisticsAddr].contractAddr,
+            logisticStatus[_logisticsAddr].contractAddr,
             _oqc,
             _weight
         );
@@ -243,7 +254,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
         _localCollector.dispatchPotatoBatchToFactory(
             _potatoBatchRelationId,
             _shipmentId,
-           logisticStatus[_logisticsAddr].contractAddr,
+            logisticStatus[_logisticsAddr].contractAddr,
             _oqs,
             _weight
         );
@@ -269,7 +280,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
 
     function chipsPreparedAtFactory(
         uint256 _potatoBatchRelationId,
-        ChipsBatch memory _details
+        ChipsPacketBatch memory _details
     ) public onlyFactory {
         // require(
         //     potatBatchRelationOf[_potatoBatchRelationId].factory == msg.sender,
@@ -277,7 +288,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
         // );
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
-        _Factory.chipsPrepared(chipsPacketBatchRelationId, _details);
+        _Factory.chipsBatchPrepared(chipsPacketBatchRelationId, _details);
 
         chipsPacketBatchRelationsOf[chipsPacketBatchRelationId]
             .potatosRelativeId = _potatoBatchRelationId;
@@ -288,6 +299,7 @@ contract SupplyLedger is RegistrarSupplyLedger {
         uint256 _chipsPacketBatchRelationId,
         address _rs,
         uint256 _ww,
+        uint256 _oqc,
         address _logisticsAddr
     ) public onlyFactory {
         // require(
@@ -309,11 +321,13 @@ contract SupplyLedger is RegistrarSupplyLedger {
         );
 
         Factory _Factory = Factory(factoryStatus[msg.sender].contractAddr);
-        _Factory.dispactchChipsBatchToRS(
+
+        _Factory.dispactchChipsPacketBatchToRS(
             _chipsPacketBatchRelationId,
             _shipmentId,
             logisticStatus[_logisticsAddr].contractAddr,
-            _ww
+            _ww,
+            _oqc
         );
     }
 
@@ -359,5 +373,4 @@ contract SupplyLedger is RegistrarSupplyLedger {
         );
         chipsPacketId++;
     }
-
 }

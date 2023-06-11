@@ -3,13 +3,16 @@ pragma solidity ^0.8.9;
 
 import "./BaseEntityContract.sol";
 
-contract LocalCollector is BaseEntityContract {
-
-    mapping(uint256 => PotatoBatchDetail) public ArrivedBatchDetails;
-    mapping(uint256 => PotatoBatchDetail) public DispatchedBatchDetails;
+contract LocalCollector is BaseEntityContract , BaseEntityInterface{
 
 
-    constructor(address _owner) BaseEntityContract(_owner, msg.sender) {}
+    mapping(uint256 => BatchDetail) public ArrivedBatchDetails; // potatoBatchId => details
+    mapping(uint256 => BatchDetail) public DispatchedBatchDetails; // potatobatchesLC => details
+
+    constructor(
+        address _owner,
+        uint256 _maxCapacity
+    ) BaseEntityContract(_owner, msg.sender, _maxCapacity) {}
 
     function potatoBatchStoredAtLC(
         uint256 _batchDetailsId,
@@ -28,9 +31,9 @@ contract LocalCollector is BaseEntityContract {
         uint256 _weight,
         uint256 _oqs
     ) public {
-        DispatchedBatchDetails[_batchDetailsId] = PotatoBatchDetail(
+        DispatchedBatchDetails[_batchDetailsId] = BatchDetail(
             _logisticId,
-        _logisticContractAddr,
+            _logisticContractAddr,
             _weight,
             _oqs,
             block.timestamp
