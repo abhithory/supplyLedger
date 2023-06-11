@@ -2,8 +2,8 @@ const potatobatchQuality = {
     "size": 0,
     "shape": 1,
     "color": 1,
-    "externalQuality": 1,
-    "internalQuality": 1,
+    "externalQuality": 0,
+    "internalQuality": 0,
     "weight": 0,
 }
 

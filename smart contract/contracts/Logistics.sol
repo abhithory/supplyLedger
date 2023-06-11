@@ -30,7 +30,7 @@ interface BaseLogisticsInterface {
         // uint256 timeAtStart;
         uint256 timeAtLoaded;
         uint256 timeAtDispatched;
-        uint256 weightAtArrived;
+        // uint256 weightAtArrived;
         uint256 timeAtArrived;
     }
 
@@ -86,7 +86,6 @@ contract Logistics is
             _destination,
             block.timestamp,
             0,
-            0,
             0
         );
         return shipmentId;
@@ -115,7 +114,7 @@ contract Logistics is
 
             shipmentOf[_shipmentId].status = ShipmentStatus(2);
             shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
-            shipmentOf[_shipmentId].weightAtArrived = 95;
+            // shipmentOf[_shipmentId].weightAtArrived = 95;
         } else {
             require(false, "status is wrong");
         }
@@ -196,10 +195,11 @@ contract Logistics is
         shipmentOf[idResponse / 100000].status = ShipmentStatus(
             statusResponse / 100000
         );
+        shipmentOf[idResponse / 100000].timeAtArrived = weightResponse;
+        // shipmentOf[idResponse / 100000].weightAtArrived =
+        //     weightResponse /
+        //     100000;
         shipmentOf[idResponse / 100000].timeAtArrived = block.timestamp;
-        shipmentOf[idResponse / 100000].weightAtArrived =
-            weightResponse /
-            100000;
     }
 
     // function updateFinalStatus(uint256 _shipmentId, uint256 status) internal {

@@ -14,7 +14,21 @@ interface FarmInterface {
         Irregular
     }
 
+    enum Color {
+        LightYellow,
+        Golden,
+        Russet,
+        RedSkinned,
+        WhiteSkinned
+    }
+
     enum ExternalQuality {
+        NoDefects,
+        MinorDefects,
+        MajorDefects
+    }
+
+        enum InternalQuality {
         NoDefects,
         MinorDefects,
         MajorDefects
@@ -29,7 +43,9 @@ interface FarmInterface {
     struct BatchQuality {
         Size size;
         Shape shape;
+        Shape color;
         ExternalQuality externalQuality;
+        InternalQuality internalQuality;
         Weight weight;
     }
 }
