@@ -71,7 +71,7 @@ async function main() {
     
     await supplyLedgerContract.potatoBatchStoredAtLC(localCollector, potatoBatchRelationId, oqs.reachLc1, weight.reachLc1)
     console.log(`potato batch stored at local collector`);
-    await supplyLedgerContract.dispatchPotatoBatchToFactory(localCollector, potatoBatchRelationId, factory.address, oqs.dispactchLc1, oqs.dispactchLc1, logistics.address)
+    await supplyLedgerContract.dispatchPotatoBatchToFactory(localCollector, potatoBatchRelationId, factory.address, oqs.dispactchLc1, weight.dispactchLc1, logistics.address)
     const dataLc = await lcContract.DispatchedBatchDetails(potatoBatchRelationId);
     lcToFactoryLogisticsId = Number(dataLc.logisticId);
     console.log(`potato batch dispatched to factory with logistics id: ${lcToFactoryLogisticsId}`);

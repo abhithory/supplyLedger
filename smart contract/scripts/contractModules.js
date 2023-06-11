@@ -1,11 +1,11 @@
 const addressObj = {
-    supplyLedgerRegistrar: '0x425A28702225040ABb58C631459b8d9ef33c6a98',
-    supplyLedger: '0x196e48BeB3743af6Baf3886c3D8B7979c0d27a5E',
-    farm: '0x5c450d7772dF69ED2b791bEdEc6601e5192809f6',
-    lc: '0x2B3320Db27c20339f46b4ecD55d09Af804674799',
-    factory: '0xb646Da6f53421De0e3bb48A38cE3Ed6482BC18F5',
-    rs: '0x3eA100F703aC8A157096D5577496d59f5a894950',
-    logistics: '0xb1D0E909a8d54532909f2D265a2C9541C6774eB7'
+    supplyLedgerRegistrar: '0x3c637523fed351003497d2a0fAA7344c380a0d81',
+    supplyLedger: '0xe9755864fe2EfC0E66260c9E723D8760B2e307fe',
+    farm: '0xc2a5d7Ed197CbEf826795689fCB465da6dC07D1C',
+    lc: '0x4BE56d667f1C6DdA287c98B7Ca431adF05bFE3C0',
+    factory: '0x49068E8A7eF2f9c1b04D3453D6a72C1F4CAc5DC7',
+    rs: '0x5D99287c4dCd0A0C3d6Da0e7A069371126ca7FEC',
+    logistics: '0x1E98B537887900c8D6eD20426e5460848F0af507'
   }
 class SupplyLedgerRegistrarContract {
     constructor(_admin) {
@@ -96,6 +96,9 @@ class SupplyLedgerContract {
 
 
     async potatoBatchStoredAtLC(lcSigner, potatoBatchRelationId, oqsReachLC, weightReachLC) {
+
+        console.log(oqsReachLC);
+        console.log(weightReachLC);
         const tx = await this.contract.connect(lcSigner).potatoBatchStoredAtLC(potatoBatchRelationId, oqsReachLC, weightReachLC);
         await tx.wait();
         return true;

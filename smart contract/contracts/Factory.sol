@@ -88,8 +88,8 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
 
     function potatoBatchStoredAtFactory(
         uint256 _potatoBatchId,
-        uint256 _weight,
-        uint256 _oqs
+        uint256 _oqs,
+        uint256 _weight
     ) public onlyRegistrar isMaxCapacityNotExceeded(_weight) {
         require(
             ArrivedBatchDetails[_potatoBatchId].weight == 0,
@@ -133,8 +133,8 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
         uint256 _chipsPacketBatchId,
         uint256 _logisticId,
         address _logisticContractAddr,
-        uint256 _weight,
-        uint256 _oqc
+        uint256 _oqs,
+        uint256 _weight
     ) public onlyRegistrar {
         require(
             currentChipsPacketBatchAllocation >= _weight,
@@ -149,7 +149,7 @@ contract Factory is BaseEntityContract, FactoryInterface, BaseEntityInterface {
             _logisticId,
             _logisticContractAddr,
             _weight,
-            _oqc,
+            _oqs,
             block.timestamp
         );
     }

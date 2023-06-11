@@ -15,8 +15,8 @@ contract LocalCollector is BaseEntityContract, BaseEntityInterface {
 
     function potatoBatchStoredAtLC(
         uint256 _potatoBatchId,
-        uint256 _weight,
-        uint256 _oqs
+        uint256 _oqs,
+        uint256 _weight
     ) public isMaxCapacityNotExceeded(_weight) {
         require(
             ArrivedBatchDetails[_potatoBatchId].weight == 0,
@@ -32,8 +32,8 @@ contract LocalCollector is BaseEntityContract, BaseEntityInterface {
         uint256 _potatoBatchId,
         uint256 _logisticId,
         address _logisticContractAddr,
-        uint256 _weight,
-        uint256 _oqs
+        uint256 _oqs,
+        uint256 _weight
     ) public isMinCapacityAvailable(_weight) {
         require(
             DispatchedBatchDetails[_potatoBatchId].weight == 0,

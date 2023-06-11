@@ -21,22 +21,22 @@ const maxCapacity = {
 
 // all in kg except chipsPacket
 const weight = {
-    harvestAtFarm1:100000,
-    harvestAtFarm2:98000,
-    harvestAtFarm3:98000,
-    harvestAtFarm4:98000,
-    atDispatchFarm1:97000,
-    atDispatchFarm2:97000,
-    atDispatchFarm3:97000,
-    atDispatchFarm4:97000,
-    reachLc1:490000,
-    reachLc2:490000,
-    dispactchLc1:1460000,
-    dispactchLc2:1460000,
-    reachFactory:1450000,
-    dispactchChipsFactory:200000, 
-    reachChipsRs1:200000,
-    reachChipsRs2:200000,
+    harvestAtFarm1:1000000,
+    harvestAtFarm2:1000000,
+    harvestAtFarm3:1000000,
+    harvestAtFarm4:1000000,
+    atDispatchFarm1:980000,
+    atDispatchFarm2:980000,
+    atDispatchFarm3:980000,
+    atDispatchFarm4:980000,
+    reachLc1:970000,
+    reachLc2:970000,
+    dispactchLc1:950000,
+    dispactchLc2:950000,
+    reachFactory:940000,
+    dispactchChipsFactory:700000, 
+    reachChipsRs1:500000,
+    reachChipsRs2:500000,
     soldChipsPacketType1:200, //(grams)   
     soldChipsPacketType2:100, //(grams)   
     soldChipsPacketType3:500 //(grams)   

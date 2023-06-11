@@ -376,8 +376,8 @@ contract SupplyLedger is FactoryInterface, FarmInterface {
                     _logisticsAddr
                 )
                 .contractAddr,
-            _ww,
-            _oqs
+            _oqs,
+            _ww
         );
     }
 

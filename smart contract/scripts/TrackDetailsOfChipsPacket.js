@@ -111,9 +111,9 @@ async function findDetail() {
         })
 
 
-        chipsPacketRelatedAllDetails.factoryPicking = { oqs: Number(chipsBatchDispatchedFromFactoryDetails.oqs), weight: Number(chipsBatchDispatchedFromFactoryDetails.weight), timestamp: formatDate(Number(chipsBatchDispatchedFromFactoryDetails.time)) };
+        chipsPacketRelatedAllDetails.factoryPicking = { oqs: Number(potatoBatchArrivedAtFactoryDetails.oqs), weight: Number(potatoBatchArrivedAtFactoryDetails.weight), timestamp: formatDate(Number(potatoBatchArrivedAtFactoryDetails.time)) };
+        chipsPacketRelatedAllDetails.factoryDispatch = { oqs: Number(chipsBatchDispatchedFromFactoryDetails.oqs), weight: Number(chipsBatchDispatchedFromFactoryDetails.weight), timestamp: formatDate(Number(chipsBatchDispatchedFromFactoryDetails.time)) };
 
-        chipsPacketRelatedAllDetails.factoryDispatch = { oqs: Number(potatoBatchArrivedAtFactoryDetails.oqs), weight: Number(potatoBatchArrivedAtFactoryDetails.weight), timestamp: formatDate(Number(potatoBatchArrivedAtFactoryDetails.time)) };
 
         chipsPacketRelatedAllDetails.rsPicking = { oqs: Number(chipsBatchArrivedAtRsDetails.oqs), weight: Number(chipsBatchArrivedAtRsDetails.weight), timestamp: formatDate(Number(chipsBatchArrivedAtRsDetails.time)) };
         chipsPacketRelatedAllDetails.itemSold = { size: batchQualityHelp.size[Number(chipsPacketSoldDetails.size)], timestamp: formatDate(Number(chipsPacketSoldDetails.time)) };
