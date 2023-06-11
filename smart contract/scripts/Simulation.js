@@ -63,7 +63,7 @@ async function main() {
         // await supplyLedgerContract.updateShipmentStatusInLogistics(_logisticId, logistics, 4);
         // console.log(`logistic id: ${_logisticId} status updated to: 4`);
         
-        // await waitForSecs(10000)
+        await waitForSecs(10000)
         const _shipmentData = await logisticsContract.shipmentOf(_logisticId);
         console.log(_shipmentData);
     }

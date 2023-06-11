@@ -108,12 +108,13 @@ contract Logistics is
                 _shipmentId
             );
         } else if (_status == 2) {
-            // requestUpdateStaus(_shipmentId);
+            // ===================== for api testing
+            requestUpdateStaus(_shipmentId);
 
             // ===================== for local testing
 
-            shipmentOf[_shipmentId].status = ShipmentStatus(2);
-            shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
+            // shipmentOf[_shipmentId].status = ShipmentStatus(2);
+            // shipmentOf[_shipmentId].timeAtArrived = block.timestamp;
             // shipmentOf[_shipmentId].weightAtArrived = 95;
         } else {
             require(false, "status is wrong");

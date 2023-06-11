@@ -28,7 +28,7 @@ async function deployContracts() {
   console.log("lc contract registered");
   const _logistics = await supplyLedgerRegistrarContract.registerEntity(EntityType.Logistics, logistics.address, maxCapacity.logistics, 0);
   console.log("logistics contract registered");
-  // await fundLinkToLogistics(_logistics.contractAddr,admin)
+  await fundLinkToLogistics(_logistics.contractAddr,admin)
   const _factory = await supplyLedgerRegistrarContract.registerEntity(EntityType.Factory, factory.address, maxCapacity.factory, maxCapacity.factoryChips);
   console.log("factory contract registered");
   const _rs = await supplyLedgerRegistrarContract.registerEntity(EntityType.RS, retailStore.address, maxCapacity.rs, 0);
