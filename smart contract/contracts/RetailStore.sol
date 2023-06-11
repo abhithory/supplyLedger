@@ -2,8 +2,16 @@
 pragma solidity ^0.8.9;
 
 import "./BaseEntityContract.sol";
+import "./Factory.sol";
 
-contract RetailStore is BaseEntityContract, BaseEntityInterface {
+contract RetailStore is BaseEntityContract, BaseEntityInterface,FactoryInterface {
+    
+    struct ChipsPacketDetail {
+        uint256 batchId;
+        PackageSize size;
+        uint256 time;
+    }
+
     mapping(uint256 => BatchDetail) public ArrivedChipsPacketBatchDetails;
     mapping(uint256 => ChipsPacketDetail) public soldChipsPacket;
 
@@ -32,11 +40,11 @@ contract RetailStore is BaseEntityContract, BaseEntityInterface {
     function chipsPacketSold(
         uint256 _chipsPacketId,
         uint256 _chipsPacketBatchId,
-        uint256 _weight
+        PackageSize size
     ) public onlyRegistrar {
         soldChipsPacket[_chipsPacketId] = ChipsPacketDetail(
             _chipsPacketBatchId,
-            _weight,
+            size,
             block.timestamp
         );
     }

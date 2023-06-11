@@ -18,12 +18,6 @@ interface BaseEntityInterface {
         uint256 weight;
         uint256 time;
     }
-
-    struct ChipsPacketDetail {
-        uint256 batchId;
-        uint256 weight;
-        uint256 time;
-    }
 }
 
 contract BaseEntityContract {
