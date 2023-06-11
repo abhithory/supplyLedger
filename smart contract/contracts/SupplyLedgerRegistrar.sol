@@ -35,7 +35,7 @@ contract SupplyLedgerRegistrar {
         EntityType _et,
         address _owner,
         uint256 _maxCapacity
-    ) public {
+    ) public onlyAdmin {
         require(
             !entityDetails[_et][msg.sender].status,
             "Entity already registred for this type"
