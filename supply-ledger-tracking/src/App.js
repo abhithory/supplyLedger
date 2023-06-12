@@ -2,76 +2,114 @@ import { useEffect, useState } from 'react';
 import logo from './logo.png';
 import ChipsPacketDetails from './components/ChipsPacketDetails';
 
-const dummySupplyChainDetails = {
-  chipsPacketId: 12345,
-  chipsBatchId: 6789,
-  potatoBatchId: 101112,
+import SupplyLedgerRegistararJson from './abis/SupplyLedgerRegistrar.json';
+import SupplyLedgerJson from './abis/SupplyLedger.json';
+import RetailStoreJson from './abis/RetailStore.json';
+import LocalCollectorJson from './abis/LocalCollector.json';
+import FarmJson from './abis/Farm.json';
+import FactoryJson from './abis/Factory.json';
+
+import { ethers } from 'ethers';
+
+
+
+const chipsPacketRelatedAllDetails = {
+  chipsPacketId: 0,
+  chipsBatchId: 0,
+  potatoBatchId: 0,
   potatoBatchHarvestQuality: {
-    size: "Large",
-    shape: "Round",
-    color: "Golden",
-    externalQuality: "Good",
-    internalQuality: "Fresh",
-    weight: "200g"
+      size: "0",
+      shape: "0",
+      color: "0",
+      externalQuality: "0",
+      internalQuality: "0",
+      weight: "0"
   },
   chipsManufacturingDetails: {
-    chipsDetail: {
-      flavor: "Cheese",
-      texture: "Crispy"
-    },
-    processDetails: {
-      cookingTemperature: 180,
-      ingredients: ["Potatoes", "Oil", "Cheese Powder", "Salt"]
-    },
-    packagingDetails: {
-      packagingMaterial: "Plastic",
-      packageSize: "100g"
-    },
-    totalPackets: 10000,
-    totalWeight: 20000,
-    productionDate: "2023-06-10",
-    shelfLife: 365
+      chipsDetail: {
+          flavor: "0",
+          texture: "0"
+      },
+      processDetails: {
+          cookingTemperature: 0, // *C
+          ingredients: ["0"]
+      },
+      packagingDetails: {
+          packagingMaterial: "0",
+          packageSize: "0"
+      },
+      totalPackets: 0,
+      totalWeight: 0, // kg * 1000
+      productionDate: "0",
+      shelfLife: 0
   },
   harvestCollected: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-01 10:00:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   harvestDispatchedFromFarmToLC: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-02 08:30:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   lcPicking: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-02 09:30:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   lsDispatch: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-03 10:30:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   factoryPicking: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-03 11:30:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   factoryDispatch: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-04 09:30:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   rsPicking: {
-    oqs: 50,
-    weight: 100,
-    timestamp: "2023-06-04 10:30:00"
+      oqs: 0,
+      weight: 0,
+      timestamp: "0"
   },
   itemSold: {
-    size: "Large",
-    timestamp: "2023-06-05 12:00:00"
+      size: "0",
+      timestamp: "0"
   }
 };
+
+const batchQualityHelp = {
+  size: ["Small", "Medium", "Large"],
+  shape: ["Regular", "Irregular"],
+  color: ["Light yellow", "Golden", "Russet", "Red-skinned", "White-skinned"],
+  externalQuality: ["No external defects", "Minor external defects", "Major external defects"],
+  internalQuality: ["No internal defects", "Minor internal defects", "Major internal defects"],
+  weight: ["Light", "Medium", "Heavy"]
+}
+const chipsManufacturingDetailsHelp = {
+      chipsDetail: {
+          flavor:["Barbecue","SourCreamAndOnion","Salted"],
+          texture:["Crispy","Crunchy"]
+      },
+      processDetails:{
+          cookingTemperature:0, // *C
+          ingredients:["Potatoes","VegetableOil","Salt","NaturalFlavors","Spices","CheesePowder","OnionPowder","GarlicPowder"]
+      },
+      packagingDetails:{
+          packagingMaterial:["PlasticBags","CardboardBoxes"],
+          packageSize:["Gram100","Gram200","Gram500"]
+      },
+      totalPackets: 0,
+      totalWeight: 0, // kg * 1000
+      productionDate: "0",
+      shelfLife:0
+}
 
 
 function App() {
@@ -81,10 +119,143 @@ function App() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [processCount, setProcessCount] = useState(0);
 
+  const addressObj = {
+    supplyLedgerRegistrar: '0x99AF47B26bAFd76FC613c409055F06060e02609b',
+    supplyLedger: '0x27F2662297a463C9509b6AF771aF040eA5B081C6',
+    farm: '0xd680104c168f1049bF649394Ec25A349375dD41E',
+    lc: '0x50EF0B4dCBD2E5391DF3A5570bE2cD64559eE71a',
+    factory: '0xd4b616d09565D18Fa044B28b5BdBeB5fBa3cd7F5',
+    rs: '0x05D2e77334aeb0930B58897A3A8A01BD2B957883',
+    logistics: '0xBF399aC01FC7a9FDA7b67650F8E4791A75e8bE15'
+  }
+
+  const EntityType = {
+    Farm: 0,
+    LC: 1,
+    Factory: 2,
+    RS: 3,
+    Logistics: 4,
+}
+
+function formatDate(sec){
+  return (new Date(Number(sec * 1000))).toLocaleString('en-US', {
+      // dateStyle: 'full',
+      // timeStyle: 'full',
+      hour12: true,
+  })
+}
 
   async function loadChipsPacketDetails() {
     if (chipsPacketId < 1) return
-    setChipsPacketEntireDetails(dummySupplyChainDetails);
+    setLoadingDetails(true);
+    const provider = new ethers.providers.JsonRpcProvider("https://rpc-mumbai.maticvigil.com");
+
+    const supplyLedgerRegistrarContract = new ethers.Contract(addressObj.supplyLedgerRegistrar, SupplyLedgerRegistararJson.abi, provider);
+
+    const supplyLedgerContract = new ethers.Contract(addressObj.supplyLedger, SupplyLedgerJson.abi, provider);
+    setProcessCount(10)
+    
+    const chipsBatchRelationId = Number(await supplyLedgerContract.chipsPacketBatchIdOf(chipsPacketId));
+    const chipsPacketBatchRelationDetails = await supplyLedgerContract.chipsPacketBatchRelationsOf(chipsBatchRelationId);
+    const potatoBatchRelationId = Number(chipsPacketBatchRelationDetails.potatosRelativeId);
+    const potatoBatchRelationDetails = await supplyLedgerContract.potatBatchRelationOf(potatoBatchRelationId);
+    setProcessCount(25)
+
+
+    const _farmStatus = await supplyLedgerRegistrarContract.entityDetails(EntityType.Farm, potatoBatchRelationDetails.farm);
+    const _farmContract = new ethers.Contract(_farmStatus.contractAddr, FarmJson.abi, provider);
+
+    const _lcStatus = await supplyLedgerRegistrarContract.entityDetails(EntityType.LC, potatoBatchRelationDetails.localCollector)
+    const _localCollectorContract = new ethers.Contract(_lcStatus.contractAddr, LocalCollectorJson.abi, provider);
+
+    const _factoryStatus = await supplyLedgerRegistrarContract.entityDetails(EntityType.Factory, potatoBatchRelationDetails.factory);
+    const _factoryContract = new ethers.Contract(_factoryStatus.contractAddr, FactoryJson.abi, provider);
+
+    const _rsStatus = await supplyLedgerRegistrarContract.entityDetails(EntityType.RS, chipsPacketBatchRelationDetails.retailStore);
+    const _RetailStoreContract = new ethers.Contract(_rsStatus.contractAddr, RetailStoreJson.abi, provider);
+
+    setProcessCount(35)
+
+    
+    const chipsPacketSoldDetails = await _RetailStoreContract.soldChipsPacket(chipsPacketId);
+    const chipsBatchArrivedAtRsDetails = await _RetailStoreContract.ArrivedChipsPacketBatchDetails(chipsBatchRelationId);
+
+    const chipsManufacturingDetails = await _factoryContract.chipsPacketBatchOf(chipsBatchRelationId);
+    const chipsBatchDispatchedFromFactoryDetails = await _factoryContract.DispatchedChipsPacketBatchDetails(chipsBatchRelationId);
+    const potatoBatchArrivedAtFactoryDetails = await _factoryContract.ArrivedBatchDetails(potatoBatchRelationId);
+
+    setProcessCount(65)
+
+
+    const arrivedBatchAtLcDetails = await _localCollectorContract.ArrivedBatchDetails(potatoBatchRelationId);
+    const dispatchedBatchAtLcDetails = await _localCollectorContract.DispatchedBatchDetails(potatoBatchRelationId);
+
+    const potatoDetailsAtFarm = await _farmContract.farmPotatoBatchDetailOf(potatoBatchRelationId);
+
+    setProcessCount(85)
+
+    chipsPacketRelatedAllDetails.chipsPacketId = chipsPacketId;
+        chipsPacketRelatedAllDetails.chipsBatchId = chipsBatchRelationId;
+        chipsPacketRelatedAllDetails.potatoBatchId = potatoBatchRelationId;
+
+        chipsPacketRelatedAllDetails.potatoBatchHarvestQuality = {
+            size: batchQualityHelp.size[potatoDetailsAtFarm.harvestBatchQuality.size],
+            shape: batchQualityHelp.shape[potatoDetailsAtFarm.harvestBatchQuality.shape],
+            color: batchQualityHelp.color[potatoDetailsAtFarm.harvestBatchQuality.color],
+            externalQuality: batchQualityHelp.externalQuality[potatoDetailsAtFarm.harvestBatchQuality.externalQuality],
+            internalQuality: batchQualityHelp.internalQuality[potatoDetailsAtFarm.harvestBatchQuality.internalQuality],
+            weight: batchQualityHelp.weight[potatoDetailsAtFarm.harvestBatchQuality.weight]
+        };
+
+
+
+        chipsPacketRelatedAllDetails.harvestCollected = { oqs: Number(potatoDetailsAtFarm.oqsHarvest), weight: Number(potatoDetailsAtFarm.harvestBatchWeight), timestamp: formatDate(Number(potatoDetailsAtFarm.collectedAt)) };
+        chipsPacketRelatedAllDetails.harvestDispatchedFromFarmToLC = { oqs: Number(potatoDetailsAtFarm.oqsDispatch), weight: Number(potatoDetailsAtFarm.weightDispatch), timestamp: formatDate(Number(potatoDetailsAtFarm.collectedAt)) };
+
+        chipsPacketRelatedAllDetails.lcPicking = { oqs: Number(arrivedBatchAtLcDetails.oqs), weight: Number(arrivedBatchAtLcDetails.weight), timestamp: formatDate(Number(arrivedBatchAtLcDetails.time)) };
+        chipsPacketRelatedAllDetails.lsDispatch = { oqs: Number(dispatchedBatchAtLcDetails.oqs), weight: Number(dispatchedBatchAtLcDetails.weight), timestamp: formatDate(Number(dispatchedBatchAtLcDetails.time)) };
+
+    setProcessCount(90)
+
+
+        chipsPacketRelatedAllDetails.chipsManufacturingDetails = {
+            chipsDetail: {
+                flavor: chipsManufacturingDetailsHelp.chipsDetail.flavor[chipsManufacturingDetails.chipsDetail.flavor],
+                texture: chipsManufacturingDetailsHelp.chipsDetail.texture[chipsManufacturingDetails.chipsDetail.texture],
+            },
+            processDetails: {
+                cookingTemperature: Number(chipsManufacturingDetails.processDetails.cookingTemperature), // *C
+                ingredients: []
+            },
+            packagingDetails: {
+                packagingMaterial: chipsManufacturingDetailsHelp.packagingDetails.packagingMaterial[chipsManufacturingDetails.packagingDetails.packagingMaterial],
+                packageSize: chipsManufacturingDetailsHelp.packagingDetails.packageSize[chipsManufacturingDetails.packagingDetails.packageSize]
+            },
+            totalPackets: Number(chipsManufacturingDetails.totalPackets),
+            totalWeight: Number(chipsManufacturingDetails.totalWeight), // kg * 1000
+            productionDate: formatDate(Number(chipsManufacturingDetails.productionDate)),
+            shelfLife: Number(chipsManufacturingDetails.shelfLife)
+        }
+
+        chipsManufacturingDetails.processDetails.ingredients.forEach((item) => {
+            // chipsPacketRelatedAllDetails.chipsManufacturingDetails.processDetails.ingredients.pop()
+            chipsPacketRelatedAllDetails.chipsManufacturingDetails.processDetails.ingredients.push(chipsManufacturingDetailsHelp.processDetails.ingredients[item]);
+        })
+
+
+        chipsPacketRelatedAllDetails.factoryPicking = { oqs: Number(potatoBatchArrivedAtFactoryDetails.oqs), weight: Number(potatoBatchArrivedAtFactoryDetails.weight), timestamp: formatDate(Number(potatoBatchArrivedAtFactoryDetails.time)) };
+        chipsPacketRelatedAllDetails.factoryDispatch = { oqs: Number(chipsBatchDispatchedFromFactoryDetails.oqs), weight: Number(chipsBatchDispatchedFromFactoryDetails.weight), timestamp: formatDate(Number(chipsBatchDispatchedFromFactoryDetails.time)) };
+
+
+        chipsPacketRelatedAllDetails.rsPicking = { oqs: Number(chipsBatchArrivedAtRsDetails.oqs), weight: Number(chipsBatchArrivedAtRsDetails.weight), timestamp: formatDate(Number(chipsBatchArrivedAtRsDetails.time)) };
+        chipsPacketRelatedAllDetails.itemSold = { size: batchQualityHelp.size[Number(chipsPacketSoldDetails.size)], timestamp: formatDate(Number(chipsPacketSoldDetails.time)) };
+
+        console.log(chipsPacketRelatedAllDetails);
+
+
+        setLoadingDetails(false);
+
+    setChipsPacketEntireDetails(chipsPacketRelatedAllDetails);
   }
 
   return (
