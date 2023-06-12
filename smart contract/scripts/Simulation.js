@@ -74,6 +74,7 @@ async function main() {
     await supplyLedgerContract.dispatchPotatoBatchToFactory(localCollector, potatoBatchRelationId, factory.address, oqs.dispactchLc1, weight.dispactchLc1, logistics.address)
     const dataLc = await lcContract.DispatchedBatchDetails(potatoBatchRelationId);
     lcToFactoryLogisticsId = Number(dataLc.logisticId);
+    console.log(lcToFactoryLogisticsId);
     console.log(`potato batch dispatched to factory with logistics id: ${lcToFactoryLogisticsId}`);
     await logisticSteps(lcToFactoryLogisticsId);
     

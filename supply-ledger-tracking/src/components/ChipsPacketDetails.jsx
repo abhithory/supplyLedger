@@ -4,79 +4,79 @@ import chipsPacketImg from './chipsPacket.jpg';
 import factoryImg from './factory.jpg';
 
 
-const chipsPacketEntireDetails = {
-    chipsPacketId: 12345,
-    chipsBatchId: 6789,
-    potatoBatchId: 101112,
-    potatoBatchHarvestQuality: {
-        size: "Large",
-        shape: "Round",
-        color: "Golden",
-        externalQuality: "Good",
-        internalQuality: "Fresh",
-        weight: "200g"
-    },
-    chipsManufacturingDetails: {
-        chipsDetail: {
-            flavor: "Cheese",
-            texture: "Crispy"
-        },
-        processDetails: {
-            cookingTemperature: 180,
-            ingredients: ["Potatoes", "Oil", "Cheese Powder", "Salt"]
-        },
-        packagingDetails: {
-            packagingMaterial: "Plastic",
-            packageSize: "100g"
-        },
-        totalPackets: 10000,
-        totalWeight: 20000,
-        productionDate: "2023-06-10",
-        shelfLife: 365
-    },
-    harvestCollected: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-01 10:00:00"
-    },
-    harvestDispatchedFromFarmToLC: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-02 08:30:00"
-    },
-    lcPicking: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-02 09:30:00"
-    },
-    lsDispatch: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-03 10:30:00"
-    },
-    factoryPicking: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-03 11:30:00"
-    },
-    factoryDispatch: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-04 09:30:00"
-    },
-    rsPicking: {
-        oqs: 50,
-        weight: 100,
-        timestamp: "2023-06-04 10:30:00"
-    },
-    itemSold: {
-        size: "Large",
-        timestamp: "2023-06-05 12:00:00"
-    }
-};
+// const chipsPacketEntireDetails = {
+//     chipsPacketId: 12345,
+//     chipsBatchId: 6789,
+//     potatoBatchId: 101112,
+//     potatoBatchHarvestQuality: {
+//         size: "Large",
+//         shape: "Round",
+//         color: "Golden",
+//         externalQuality: "Good",
+//         internalQuality: "Fresh",
+//         weight: "200g"
+//     },
+//     chipsManufacturingDetails: {
+//         chipsDetail: {
+//             flavor: "Cheese",
+//             texture: "Crispy"
+//         },
+//         processDetails: {
+//             cookingTemperature: 180,
+//             ingredients: ["Potatoes", "Oil", "Cheese Powder", "Salt"]
+//         },
+//         packagingDetails: {
+//             packagingMaterial: "Plastic",
+//             packageSize: "100g"
+//         },
+//         totalPackets: 10000,
+//         totalWeight: 20000,
+//         productionDate: "2023-06-10",
+//         shelfLife: 365
+//     },
+//     harvestCollected: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-01 10:00:00"
+//     },
+//     harvestDispatchedFromFarmToLC: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-02 08:30:00"
+//     },
+//     lcPicking: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-02 09:30:00"
+//     },
+//     lsDispatch: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-03 10:30:00"
+//     },
+//     factoryPicking: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-03 11:30:00"
+//     },
+//     factoryDispatch: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-04 09:30:00"
+//     },
+//     rsPicking: {
+//         oqs: 50,
+//         weight: 100,
+//         timestamp: "2023-06-04 10:30:00"
+//     },
+//     itemSold: {
+//         size: "Large",
+//         timestamp: "2023-06-05 12:00:00"
+//     }
+// };
 
 
-export default function ChipsPacketDetails() {
+export default function ChipsPacketDetails({chipsPacketEntireDetails}) {
     return (
         <div className='w-full'>
             <div className="border border-yellow-600 mx-32 py-8 rounded flex text-center justify-center items-center">

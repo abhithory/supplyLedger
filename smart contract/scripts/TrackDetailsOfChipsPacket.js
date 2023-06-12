@@ -16,7 +16,7 @@ function formatDate(sec){
 }
 
 
-const chipsPacketId = 2;
+const chipsPacketId = 1;
 async function findDetail() {
     const [admin] = await ethers.getSigners();
 
